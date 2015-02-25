@@ -33,6 +33,7 @@ void getmyStorage()
 			CCLOG("ExtStoragePath = %s",mstrcpy);
 			searchPaths.push_back(std::string(mstrcpy));
 		}	
+		searchPaths.push_back(std::string("/storage/extSdCard/HereticTrainer"));
 #endif
 }
 //if you want a different context,just modify the value of glContextAttrs

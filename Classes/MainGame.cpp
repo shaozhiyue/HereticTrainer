@@ -551,13 +551,13 @@ void MainGame::onTouchesBegan(const std::vector<Touch*>& touches, Event  *event)
 {
 	for (auto touch : touches)
 	{
-		auto location = touch->getLocation();
+		auto location = touch->getLocation();	//得到当前触摸点坐标
 		for (int i = 0; i < 9; i++)
 		{
-			if (checkTouch(i, location))
+			if (checkTouch(i, location))	   
 			{
-				
-				while (queueHead[i] < nodeQueue[i].size() && nodeQueue[i][queueHead[i]].result != Score::NONE)queueHead[i]++;
+				//如果这个点位于判定区域内
+				while (queueHead[i] < nodeQueue[i].size() && nodeQueue[i][queueHead[i]].result != Score::NONE)						queueHead[i]++;
 				if (queueHead[i] >= nodeQueue[i].size())
 				{
 					continue;

@@ -57,7 +57,7 @@ bool PlayDuration(int start, int end)
 {
 	 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 	JniMethodInfo t;
-	if (JniHelper::getStaticMethodInfo(t, "org/cocos2dx/cpp/MusicPlay", "Stop()", "()Z"))
+	if (JniHelper::getStaticMethodInfo(t, "org/cocos2dx/cpp/MusicPlay", "Stop", "()Z"))
 	{
 		return t.env->CallStaticBooleanMethod(t.classID, t.methodID);
 	}
