@@ -19,23 +19,6 @@ AppDelegate::AppDelegate() {
 AppDelegate::~AppDelegate() 
 {
 }
-void getmyStorage()
-{
-	//Google 不推荐硬编码/sdcard，改用android.os,Environment.getExternalStorageDirectory()获取外部存储目录
-	#if (CC_TARGET_PLATFORM ==CC_PLATFORM_ANDROID)
-	JniMethodInfo getPath;
-	jstring mstr;
-	char mstrcpy[2000];
-		if (JniHelper::getStaticMethodInfo(getPath, "org/cocos2dx/cpp/MusicPlay", "getMyStorage", "()Ljava/lang/String;"))
-		{
-			mstr = (jstring)(getPath.env->CallStaticObjectMethod(getPath.classID, getPath.methodID));
-			strcpy(mstrcpy,getPath.env->GetStringUTFChars(mstr, false));
-			CCLOG("ExtStoragePath = %s",mstrcpy);
-			searchPaths.push_back(std::string(mstrcpy));
-		}	
-		searchPaths.push_back(std::string("/storage/extSdCard/HereticTrainer"));
-#endif
-}
 //if you want a different context,just modify the value of glContextAttrs
 //it will takes effect on all platforms
 void AppDelegate::initGLContextAttrs()
@@ -57,7 +40,20 @@ bool AppDelegate::applicationDidFinishLaunching() {
 	}
 	std::vector<std::string> searchPaths;
 
-	getmyStorage();	//得到外部存放音乐目录
+	//Google 不推荐硬编码/sdcard，改用android.os,Environment.getExternalStorageDirectory()获取外部存储目录
+#if (CC_TARGET_PLATFORM ==CC_PLATFORM_ANDROID)
+	JniMethodInfo getPath;
+	jstring mstr;
+	char mstrcpy[2000];
+	if (JniHelper::getStaticMethodInfo(getPath, "org/cocos2dx/cpp/MusicPlay", "getMyStorage", "()Ljava/lang/String;"))
+		{
+			mstr = (jstring)(getPath.env->CallStaticObjectMethod(getPath.classID, getPath.methodID));
+			strcpy(mstrcpy,getPath.env->GetStringUTFChars(mstr, false));
+			CCLOG("ExtStoragePath = %s",mstrcpy);
+			searchPaths.push_back(std::string(mstrcpy));
+		}	
+		searchPaths.push_back(std::string("/storage/extSdCard/HereticTrainer"));	//等待Google发布API
+#endif	//得到外部存放音乐目录
 
 #if (CC_TARGET_PLATFORM ==CC_PLATFORM_WIN32)
 
