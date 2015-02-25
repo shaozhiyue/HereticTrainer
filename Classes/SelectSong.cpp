@@ -91,7 +91,12 @@ bool SelectSong::init()
 			config.greatdis = UserDefault::getInstance()->getDoubleForKey("greatdis");
 			config.perfectdis = UserDefault::getInstance()->getDoubleForKey("perfectdis");
 			Song song = DataManager::loadDataFile(songlist[curPos].sDataPath, songlist[curPos]);
-			if (cbRandom->getSelectedState())song = Randomize(song, RANDOM_NEW);
+			bool enable_ran = cbRandom_enable->getSelectedState();
+			bool enable_ran_new = cbRandom_new->getSelectedState();
+			if (enable_ran && enable_ran_new)
+				song = Randomize(song, RANDOM_NEW);
+			else if(enable_ran && !enable_ran_new)
+				song = Randomize(song, RANDOM_OLD);
 			//log("^%s\n", songlist[curPos].sBackgroundPath.c_str());
 			if (song.bUsable)
 			{
@@ -118,7 +123,12 @@ bool SelectSong::init()
 			config.rate = 0.7;
 			config.bPlayMusic = false;
 			Song song = DataManager::loadDataFile(songlist[curPos].sDataPath, songlist[curPos]);
-			if (cbRandom->getSelectedState())song = Randomize(song, RANDOM_NEW);
+			bool enable_ran = cbRandom_enable->getSelectedState();
+			bool enable_ran_new = cbRandom_new->getSelectedState();
+			if (enable_ran && enable_ran_new)
+				song = Randomize(song, RANDOM_NEW);
+			else if(enable_ran && !enable_ran_new)
+				song = Randomize(song, RANDOM_OLD);
 			if (song.bUsable)
 			{
 				auto scene = MainGame::createScene(songlist[curPos], song, config);
@@ -145,7 +155,12 @@ bool SelectSong::init()
 			config.rate =1.5;
 			config.bPlayMusic = false;
 			Song song = DataManager::loadDataFile(songlist[curPos].sDataPath, songlist[curPos]);
-			if (cbRandom->getSelectedState())song = Randomize(song, RANDOM_NEW);
+			bool enable_ran = cbRandom_enable->getSelectedState();
+			bool enable_ran_new = cbRandom_new->getSelectedState();
+			if (enable_ran && enable_ran_new)
+				song = Randomize(song, RANDOM_NEW);
+			else if(enable_ran && !enable_ran_new)
+				song = Randomize(song, RANDOM_OLD);
 			if (song.bUsable)
 			{
 				auto scene = MainGame::createScene(songlist[curPos], song, config);
@@ -189,20 +204,36 @@ bool SelectSong::init()
 	btSetting->setAnchorPoint(Vec2(0.5, 0.5));
 	addChild(btSetting, 13);
 
-
-	cbRandom = ui::CheckBox::create(
+	//
+	cbRandom_new = ui::CheckBox::create(
 		"selecter_random_nor.png", 
 		"selecter_random_nor.png",
 		"selecter_random_press.png",
 		"selecter_random_nor.png", 
 		"selecter_random_press.png");
-	cbRandom->setPosition(Vec2(880, 720 - 520));
-	cbRandom->setAnchorPoint(Vec2(0.5, 0.5));
-	addChild(cbRandom, 13);
+	cbRandom_new->setPosition(Vec2(780, 720 - 520));
+	cbRandom_new->setAnchorPoint(Vec2(0.5, 0.5));
+	addChild(cbRandom_new, 13);
 	
-	auto lbRandom = Label::create("随机", "Arial", 24);
-	lbRandom->setPosition(Vec2(947, 720 - 520));
-	addChild(lbRandom, 13);
+	auto lbRandom_new = Label::createWithSystemFont("使用新随机，否则旧版", "Arial", 24);
+	lbRandom_new->setPosition(Vec2(940, 720 - 520));
+	addChild(lbRandom_new, 13);
+	//
+
+	cbRandom_enable = ui::CheckBox::create(
+		"selecter_random_nor.png", 
+		"selecter_random_nor.png",
+		"selecter_random_press.png",
+		"selecter_random_nor.png", 
+		"selecter_random_press.png");
+	cbRandom_enable->setPosition(Vec2(380, 720 - 520));
+	cbRandom_enable->setAnchorPoint(Vec2(0.5, 0.5));
+	addChild(cbRandom_enable, 13);
+	
+	auto lbRandom_enable= Label::createWithSystemFont("启用随机谱面", "Arial", 24);
+	lbRandom_enable->setPosition(Vec2(480, 720 - 520));
+	addChild(lbRandom_enable, 13);
+
 
 	return true;
 }

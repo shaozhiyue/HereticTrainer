@@ -185,11 +185,11 @@ void MainGame::Init_Spr_Score_cb()
 
 	
 		//comboÏÔÊ¾
-	lbCombo = Label::create("combo", "Arial", 30);
+	lbCombo = Label::createWithSystemFont("combo", "Arial", 30);
 	lbCombo->setPosition(Vec2(570,415));
 	lbCombo->setVisible(false);
 	addChild(lbCombo);
-	lbComboCnt = Label::create("141", "Arial", 55);
+	lbComboCnt = Label::createWithSystemFont("141", "Arial", 55);
 	lbComboCnt->setPosition(Vec2(490, 415));
 	lbComboCnt->setAlignment(TextHAlignment::RIGHT);
 	addChild(lbComboCnt);
