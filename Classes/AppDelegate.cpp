@@ -2,11 +2,13 @@
 #include "HelloWorldScene.h"
 #include"MainGame.h"
 #include "SelectSong.h"
-#include"AndroidAudio.h"
 #include"audio\include\AudioEngine.h"
-#include "MusicPlayer.h"
 #include "SimpleAudioEngine.h"
+#if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 #include "jni.h"
+#include "MusicPlayer.h"
+#include"AndroidAudio.h"
+#endif
 #include <stdio.h>
 //#include "build\platforms\android-8\arch-arm\usr\include\android\log.h"
 //#define TAG "HereticTrainer_init"
@@ -53,6 +55,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
 			searchPaths.push_back(std::string(mstrcpy));
 		}	
 		searchPaths.push_back(std::string("/storage/extSdCard/HereticTrainer"));	//等待Google发布API
+		initAudioEngine();
 #endif	//得到外部存放音乐目录
 
 #if (CC_TARGET_PLATFORM ==CC_PLATFORM_WIN32)
@@ -62,7 +65,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
 #endif
 	FileUtils::getInstance()->setSearchPaths(searchPaths);
     // turn on display FPS
-	initAudioEngine();
+	
     director->setDisplayStats(false);
 	//glview->setFrameSize(1280,720);
 	glview->setDesignResolutionSize(1080, 720, ResolutionPolicy::SHOW_ALL);//分辨率匹配

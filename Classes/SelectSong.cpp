@@ -6,6 +6,7 @@
 #include "SettingScene.h"
 #include"RandomSong.h"
 #include <locale>
+#include "AutoPlay.h"
 
 USING_NS_CC;
 
@@ -85,25 +86,7 @@ bool SelectSong::init()
 	{
 		if (type == ui::Widget::TouchEventType::ENDED)
 		{
-			SongConfig config;
-			config.baddis = UserDefault::getInstance()->getDoubleForKey("baddis");
-			config.gooddis = UserDefault::getInstance()->getDoubleForKey("gooddis");
-			config.greatdis = UserDefault::getInstance()->getDoubleForKey("greatdis");
-			config.perfectdis = UserDefault::getInstance()->getDoubleForKey("perfectdis");
-			Song song = DataManager::loadDataFile(songlist[curPos].sDataPath, songlist[curPos]);
-			bool enable_ran = cbRandom_enable->getSelectedState();
-			bool enable_ran_new = cbRandom_new->getSelectedState();
-			if (enable_ran && enable_ran_new)
-				song = Randomize(song, RANDOM_NEW);
-			else if(enable_ran && !enable_ran_new)
-				song = Randomize(song, RANDOM_OLD);
-			//log("^%s\n", songlist[curPos].sBackgroundPath.c_str());
-			if (song.bUsable)
-			{
-				auto scene = MainGame::createScene(songlist[curPos],song,config);
-				Director::getInstance()->pushScene(scene);
-			}
-			
+			StartGame(160);
 		}
 	});
 	btNormal->setPosition(Vec2(561, 720 - 626));
@@ -115,26 +98,7 @@ bool SelectSong::init()
 	{
 		if (type == ui::Widget::TouchEventType::ENDED)
 		{
-			SongConfig config;
-			config.baddis = UserDefault::getInstance()->getDoubleForKey("baddis");
-			config.gooddis = UserDefault::getInstance()->getDoubleForKey("gooddis");
-			config.greatdis = UserDefault::getInstance()->getDoubleForKey("greatdis");
-			config.perfectdis = UserDefault::getInstance()->getDoubleForKey("perfectdis");
-			config.rate = 0.7;
-			config.bPlayMusic = false;
-			Song song = DataManager::loadDataFile(songlist[curPos].sDataPath, songlist[curPos]);
-			bool enable_ran = cbRandom_enable->getSelectedState();
-			bool enable_ran_new = cbRandom_new->getSelectedState();
-			if (enable_ran && enable_ran_new)
-				song = Randomize(song, RANDOM_NEW);
-			else if(enable_ran && !enable_ran_new)
-				song = Randomize(song, RANDOM_OLD);
-			if (song.bUsable)
-			{
-				auto scene = MainGame::createScene(songlist[curPos], song, config);
-				Director::getInstance()->pushScene(scene);
-			}
-
+			StartGame(200);
 		}
 	});
 	btFast->setPosition(Vec2(909, 720 -626));
@@ -146,27 +110,7 @@ bool SelectSong::init()
 	{
 		if (type == ui::Widget::TouchEventType::ENDED)
 		{
-			SongConfig config;
-			config.baddis = UserDefault::getInstance()->getDoubleForKey("baddis");
-			config.gooddis = UserDefault::getInstance()->getDoubleForKey("gooddis");
-			config.greatdis = UserDefault::getInstance()->getDoubleForKey("greatdis");
-			config.perfectdis = UserDefault::getInstance()->getDoubleForKey("perfectdis");
-			//log("%lf",config.perfectdis);
-			config.rate =1.5;
-			config.bPlayMusic = false;
-			Song song = DataManager::loadDataFile(songlist[curPos].sDataPath, songlist[curPos]);
-			bool enable_ran = cbRandom_enable->getSelectedState();
-			bool enable_ran_new = cbRandom_new->getSelectedState();
-			if (enable_ran && enable_ran_new)
-				song = Randomize(song, RANDOM_NEW);
-			else if(enable_ran && !enable_ran_new)
-				song = Randomize(song, RANDOM_OLD);
-			if (song.bUsable)
-			{
-				auto scene = MainGame::createScene(songlist[curPos], song, config);
-				Director::getInstance()->pushScene(scene);
-			}
-
+			StartGame(128);
 		}
 	});
 	btSlow->setPosition(Vec2(210, 720 - 626));
@@ -234,9 +178,55 @@ bool SelectSong::init()
 	lbRandom_enable->setPosition(Vec2(480, 720 - 520));
 	addChild(lbRandom_enable, 13);
 
+	//Auto
+	AutoPlay_enable = ui::CheckBox::create(
+		"selecter_random_nor.png", 
+		"selecter_random_nor.png",
+		"selecter_random_press.png",
+		"selecter_random_nor.png", 
+		"selecter_random_press.png");
+	AutoPlay_enable->setPosition(Vec2(190, 720 - 520));
+	AutoPlay_enable->setAnchorPoint(Vec2(0.5, 0.5));
+	addChild(AutoPlay_enable, 13);
+	
+	auto AutoPlay= Label::createWithSystemFont("启用Auto", "Arial", 24);
+	AutoPlay->setPosition(Vec2(220, 720 - 520));
+	addChild(AutoPlay, 13);
+
 
 	return true;
 }
+void SelectSong::StartGame(int Speed)
+{
+			
+			SongConfig config;
+			config.baddis = UserDefault::getInstance()->getDoubleForKey("baddis");
+			config.gooddis = UserDefault::getInstance()->getDoubleForKey("gooddis");
+			config.greatdis = UserDefault::getInstance()->getDoubleForKey("greatdis");
+			config.perfectdis = UserDefault::getInstance()->getDoubleForKey("perfectdis");
+			config.rate = Speed / 128;
+			Song song = DataManager::loadDataFile(songlist[curPos].sDataPath, songlist[curPos]);
+			bool enable_ran = cbRandom_enable->getSelectedState();
+			bool enable_ran_new = cbRandom_new->getSelectedState();
+			if (enable_ran && enable_ran_new)
+				song = Randomize(song, RANDOM_NEW);
+			else if(enable_ran && !enable_ran_new)
+				song = Randomize(song, RANDOM_OLD);
+			
+			//log("^%s\n", songlist[curPos].sBackgroundPath.c_str());
+			if (song.bUsable)
+			{
+				Scene* scene;
+				if(!AutoPlay_enable->getSelectedState())	
+					scene = MainGame::createScene(songlist[curPos],song,config);
+				else
+					scene = AutoPlay::createAutoScene(songlist[curPos],song,config,GAMEMODE_AUTO);
+				Director::getInstance()->pushScene(scene);
+			}
+			
+
+}
+
 void SelectSong::createSprite(int pos)
 {
 	curPos = pos;
