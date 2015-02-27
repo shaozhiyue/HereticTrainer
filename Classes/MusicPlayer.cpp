@@ -1,5 +1,5 @@
 #include "MusicPlayer.h"
- #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
  bool Prepare(const char* Filename)
 {
     #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
@@ -73,4 +73,3 @@ bool PlayDuration(int start, int end)
 	}
     #endif
 }
-#endif

@@ -11,7 +11,7 @@ bool CustomDrawNode::init()
 	return true;
 }
 
-void CustomDrawNode::update(float dt)	//被scheduledupdate()调用的回调函数
+void CustomDrawNode::update(float dt)
 {
 	DrawNode::update(dt);
 	double x1 = tail->getPositionX();//根据两圆环确定梯形的4个点

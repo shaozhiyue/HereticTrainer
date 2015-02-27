@@ -18,9 +18,8 @@ public:
 	cocos2d::Sprite* spTitle;
 	cocos2d::Label* lbName;
 	cocos2d::ui::CheckBox *cbRandom_new;
-	cocos2d::ui::CheckBox *cbRandom_enable;
-	cocos2d::ui::CheckBox *AutoPlay_enable;
-	void StartGame(int Speed);	;
+	cocos2d::ui::CheckBox *cbRandom_enable
+		;
 	int curPos;
 	std::vector<SongInfo> songlist;
 	CREATE_FUNC(SelectSong);

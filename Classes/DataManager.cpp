@@ -140,7 +140,6 @@ SongInfo loadInfoFile(std::string path)
 }
 Song loadLLpracticeJson(std::string sContent, SongInfo &songinfo)
 {
-	//读取LLPjson时已经算进去offsettime了
 	Song ret;
 	rapidjson::Document doc;
 	doc.Parse<0>(sContent.c_str());
@@ -155,7 +154,7 @@ Song loadLLpracticeJson(std::string sContent, SongInfo &songinfo)
 	if (doc.HasMember("speed"))
 	{
 		rapidjson::Value& valSpeed = doc["speed"];
-		ret.dSpeed = 128 / valSpeed.GetDouble(); //128为hard速度，160是ex
+		ret.dSpeed = 128 / valSpeed.GetDouble();
 	}
 
 	double offsettime=0;
@@ -214,7 +213,7 @@ Song loadLLpracticeJson(std::string sContent, SongInfo &songinfo)
 	return ret;
 
 }
-Song loadLoveLiveJson(std::string path, char *data, unsigned len, SongInfo &songinfo)	//官谱，依赖LLParser.cpp(不公开)
+Song loadLoveLiveJson(std::string path, char *data, unsigned len, SongInfo &songinfo)
 {
 	Song ret;
 	ret.bUsable=decryptLLFile(path,data,len);
