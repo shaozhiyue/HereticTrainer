@@ -1,21 +1,13 @@
 #include "MainGame.h"
 #include "SelectSong.h"
-
 #include <algorithm>
-#include<sstream>
-#include<math.h>
-
-
-#include"audio\include\AudioEngine.h"
-#include"AndroidAudio.h"
-
+#include <sstream>
+#include <math.h>
+#include "audio\include\AudioEngine.h"
+#include "AndroidAudio.h"
+#include "Autoplay.h"
 USING_NS_CC;
 using namespace ui;
-Vec2 vGameArea[] = { Vec2(89, 539), Vec2(124, 364), Vec2(220, 219), Vec2(367, 122), Vec2(539, 88)
-, Vec2(712, 122), Vec2(858, 219), Vec2(954, 364), Vec2(989, 539) };
-
-Vec2 vBornPoint = Vec2(539, 539);
-double iRadius = 62;
 
 
 
@@ -24,7 +16,18 @@ Scene* MainGame::createScene(const SongInfo &songinfo, const Song &song, const S
 	// 'scene' is an autorelease object
 	auto scene = Scene::create();
 	// 'layer' is an autorelease object
-	auto layer = MainGame::create(songinfo, song, songfig);
+	auto layer = MainGame::create(songinfo, song, songfig, GAMEMODE_NORMAL);
+	// add layer as a child to scene
+	scene->addChild(layer);
+	// return the scene
+	return scene;
+}
+Scene* MainGame::createScene(const SongInfo &songinfo, const Song &song, const SongConfig &songfig, int GameMode)
+{
+	// 'scene' is an autorelease object
+	auto scene = Scene::create();
+	// 'layer' is an autorelease object
+	auto layer = MainGame::create(songinfo, song, songfig, GameMode);
 	// add layer as a child to scene
 	scene->addChild(layer);
 	// return the scene
@@ -78,7 +81,10 @@ bool MainGame::init(const SongInfo &songinfo, const Song &song, const SongConfig
 	this->songconfig = songfig;
 	Init_Background();
 	Init_Spr_Score_cb();
-	Init_TouchLayer();
+	if(!(mGameMode & GAMEMODE_AUTO))	//自动打谱是不初始化触摸的  
+	{
+		Init_TouchLayer();
+	}
 	//暂停按钮
 	btStop = ui::Button::create("stopbutton.png");
 	btStop->setPosition(Vec2(1050, 692));
@@ -89,7 +95,7 @@ bool MainGame::init(const SongInfo &songinfo, const Song &song, const SongConfig
 	});
 	addChild(btStop, 0);
 	//开启循环制造旋律
-	this->scheduleUpdate();
+	this->schedule(schedule_selector(MainGame::update), 0.01);
 	return true;
 }
 void MainGame::Init_Background()
@@ -142,21 +148,21 @@ void MainGame::Init_Background()
 		EaseOut::create(Spawn::create(ScaleTo::create(0.6, 1), FadeOut::create(0.6), NULL), 5),
 		DelayTime::create(0.8),
 		NULL));
-		spRing1->runAction(sqRing1);
-		spRing2->runAction(sqRing2);
-		spRing3->runAction(sqRing3);
-		spRing4->runAction(sqRing4);
-		addChild(spRing1, 9);
-		addChild(spRing2, 9);
-		addChild(spRing3, 9);
-		addChild(spRing4, 9);
-		auto spOnfuku = Sprite::create("onfuku.png");	//音乐标志，圈圈从这里出
-		spOnfuku->setPosition(vBornPoint);
-		spOnfuku->setScale(0.8);
-		auto sqOnfuku = RepeatForever::create(Sequence::create(EaseIn::create(ScaleTo::create(1, 1), 2), EaseIn::create(ScaleTo::create(1, 0.8), 2), NULL));
-		spOnfuku->runAction(sqOnfuku);
-		addChild(spOnfuku, 10);
-		//波动的圈圈动作设定完毕，播放动画
+	spRing1->runAction(sqRing1);
+	spRing2->runAction(sqRing2);
+	spRing3->runAction(sqRing3);
+	spRing4->runAction(sqRing4);
+	addChild(spRing1, 9);
+	addChild(spRing2, 9);
+	addChild(spRing3, 9);
+	addChild(spRing4, 9);
+	auto spOnfuku = Sprite::create("onfuku.png");	//音乐标志，圈圈从这里出
+	spOnfuku->setPosition(vBornPoint);
+	spOnfuku->setScale(0.8);
+	auto sqOnfuku = RepeatForever::create(Sequence::create(EaseIn::create(ScaleTo::create(1, 1), 2), EaseIn::create(ScaleTo::create(1, 0.8), 2), NULL));
+	spOnfuku->runAction(sqOnfuku);
+	addChild(spOnfuku, 10);
+	//波动的圈圈动作设定完毕，播放动画
 }
 void MainGame::Init_Spr_Score_cb()
 {
@@ -183,8 +189,8 @@ void MainGame::Init_Spr_Score_cb()
 	addChild(spBad, 30);
 	addChild(spMiss, 30);
 
-	
-		//combo显示
+
+	//combo显示
 	lbCombo = Label::createWithSystemFont("combo", "Arial", 30);
 	lbCombo->setPosition(Vec2(570,415));
 	lbCombo->setVisible(false);
@@ -212,11 +218,11 @@ void MainGame::Init_TouchLayer()
 }
 void  MainGame::StopSence()
 {
-//	TextureCache::getInstance()->removeUnusedTextures();
+	//	TextureCache::getInstance()->removeUnusedTextures();
 #if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-		Pause();
+	Pause();
 #else
-		experimental::AudioEngine::pauseAll(); 
+	experimental::AudioEngine::pauseAll(); 
 #endif
 	RenderTexture *renderTexture = RenderTexture::create(1080, 720);
 	renderTexture->begin();
@@ -265,7 +271,7 @@ void  MainGame::StopSence()
 		experimental::AudioEngine::stopAll(); 
 #endif
 		Director::getInstance()->popScene(); 
-		
+
 		Director::getInstance()->popScene();
 
 	} });
@@ -277,8 +283,8 @@ void  MainGame::StopSence()
 
 void MainGame::showScoreEffect(Score score)
 {
-//	static  int cnt = 0;
-//	log("Anzer showScore-%d begin", cnt);
+	//	static  int cnt = 0;
+	//	log("Anzer showScore-%d begin", cnt);
 	spPerfect->stopAllActions();
 	spGreat->stopAllActions();
 	spGood->stopAllActions();
@@ -312,7 +318,7 @@ void MainGame::showScoreEffect(Score score)
 #else
 		experimental::AudioEngine::play2d("perfect.ogg");
 #endif
-	
+
 		break;
 	case Score::GREAT:
 		spGreat->setVisible(true);
@@ -324,7 +330,7 @@ void MainGame::showScoreEffect(Score score)
 
 		lbComboCnt->runAction(Sequence::create(EaseIn::create(ScaleTo::create(0.1, 1.2), 2), EaseIn::create(ScaleTo::create(0.1, 1), 2), NULL));
 		lbCombo->runAction(Sequence::create(EaseIn::create(ScaleTo::create(0.1, 1.2), 2), EaseIn::create(ScaleTo::create(0.1, 1), 2), NULL));
-		
+
 		curCombo++;
 		maxCombo = std::max(maxCombo, curCombo);
 		buf << curCombo;
@@ -389,180 +395,189 @@ void MainGame::showScoreEffect(Score score)
 	default:
 		break;
 	}
-//	log("Anzer  showScore-%d end", cnt++);
+	//	log("Anzer  showScore-%d end", cnt++);
+}
+void MainGame::Deal_with_long(NodeInfo &nodeinfo, const Rhythm &rh)
+{
+	nodeinfo.head = Sprite::create((rh.type&RHYTHMTYPE_SAMETIME) ? "r3.png" : "r2.png");
+	nodeinfo.head->setPosition(539, 539);
+	nodeinfo.head->setScale(0);//长圆环的头圆环
+
+	nodeinfo.tail = Sprite::create("r1.png");
+	nodeinfo.tail->setPosition(539, 539);
+	nodeinfo.tail->setScale(0);
+
+	nodeinfo.noodle = CustomDrawNode::create();//画梯形
+	nodeinfo.noodle->setPosition(Vec2::ZERO);
+	nodeinfo.noodle->setAnchorPoint(Vec2::ZERO);
+	nodeinfo.noodle->head = nodeinfo.head;
+	nodeinfo.noodle->tail = nodeinfo.tail;
+	nodeinfo.noodle->pattern = true;
+	nodeinfo.noodle->tm = 0;
+	nodeinfo.noodle->atm = rh.endTime - rh.beginTime;//持续时间
+
+
+
+	addChild(nodeinfo.head, 10);
+	addChild(nodeinfo.noodle, 8);
+	addChild(nodeinfo.tail, 10);
+
+	nodeQueue[rh.pos].push_back(nodeinfo);	//在节奏对应的lane加入该node
+	nodeinfo.index = nodeQueue[rh.pos].size() - 1;
+	//dspeed是真正在中间工作的速度
+	double speed = this->song.dSpeed;	//->hard128速，ex160速，假设hard里面圈圈从出生到运行至头像需要1秒，则ex里面为128/160秒
+	float start_t1 = speed * this -> songconfig.rate;//头圆环出生到到达头像处需要的时间
+	float dis = vGameArea[rh.pos].distance(vBornPoint);//该道的头像和出生点的距离
+
+	float start_t2 = (this-> songconfig.baddis/ dis)*start_t1;//判定为miss需要的时间
+
+	float end_t1 = (rh.endTime - rh.beginTime)*this->songconfig.rate;//头圆环动作延迟时间
+	float end_t2 = speed*this->songconfig.rate;//尾圆环到达头像处需要的时间
+
+	//计算miss点，坐标
+	float speedx = (vGameArea[rh.pos].x - vBornPoint.x) / (speed*this->songconfig.rate);
+	float speedy = (vGameArea[rh.pos].y - vBornPoint.y) / (speed*this->songconfig.rate);
+	//利用速度合成公式
+	float end_t3 = (this->songconfig.baddis / dis)*end_t2;
+	//end_t3:Bad_margin X end_t2 / DISTANCE_ORI_TARGET 总之是个比率，乘以速度就能得到判定miss时额外坐标....(这么麻烦？。。。。好吧尾巴是会飞过去的，会判出miss )
+	Vec2 vGoal =Vec2 ( vGameArea[rh.pos].x + speedx*end_t3, vGameArea[rh.pos].y + speedy*end_t3 );//miss时的位置
+	//动作
+	//长条的sequence：创建一个spawn（头部圈圈用start_t1到正常大小，并且从原点移动到对应头像），最后调用一个匿名函数判断是否miss，下一个sequence为梯形，即为条体，条体执行完毕以后即杀掉已经放出的node对象
+	Sequence *sq1 = Sequence::create(
+		Spawn::create(ScaleTo::create(start_t1, 1), MoveTo::create(start_t1, vGameArea[rh.pos]), NULL),					DelayTime::create(start_t2)
+		, CCCallFuncN::create([=](Ref*sender)
+	{
+		nodeinfo.head->setVisible(false);
+		nodeinfo.tail->setVisible(false);
+		nodeinfo.noodle->setVisible(false);
+
+
+
+		Score result = nodeQueue[rh.pos][nodeinfo.index].result;
+		//nodequeue里面有9个位置，代表9个头像出现的位置，中间存的是NodeInfo，即每个到来的圈圈的信息，此处使用了原JSON的结构，将9个轨道的note分9个vector储存了。。。。。 -0 0什么鬼！这里其实就是取出对应的note啦
+		if (result == Score::NONE)
+		{	
+			nodeQueue[rh.pos][nodeinfo.index].result = Score::MISS;
+			showScoreEffect(Score::MISS);
+			//如果没有任何评分则算miss了
+		}
+	})
+		, NULL);
+	//长条的尾部光圈,大部分和上面一样,但是出现时间比头延迟了end - start
+	Sequence *sq2 = Sequence::create(
+		DelayTime::create(end_t1), Spawn::create(ScaleTo::create(end_t2, 1), MoveTo::create(end_t2, vGameArea[rh.pos]), NULL), MoveTo::create(end_t3, vGoal)
+		, CCCallFuncN::create([=](Ref*sender)
+	{
+		nodeinfo.head->setVisible(false);
+		nodeinfo.tail->setVisible(false);
+		nodeinfo.noodle->setVisible(false);
+
+		Score result = nodeQueue[rh.pos][nodeinfo.index].result_tail;
+
+		if (result == Score::NONE)
+		{
+			nodeQueue[rh.pos][nodeinfo.index].result_tail = Score::MISS;
+			showScoreEffect(Score::MISS);
+		}
+	})
+		, DelayTime::create(10), CCCallFuncN::create([=](Ref*sender)
+	{
+		this->removeChild(nodeinfo.head);
+		this->removeChild(nodeinfo.tail);
+		this->removeChild(nodeinfo.noodle);
+	})
+
+		, NULL);
+	//开始动作运行
+	nodeinfo.head->runAction(sq1);
+	nodeinfo.tail->runAction(sq2);
+	nodeinfo.noodle->scheduleUpdate();
+}
+void MainGame::Deal_with_tap(NodeInfo &nodeinfo, const Rhythm &rh)
+{
+	nodeinfo.head = Sprite::create((rh.type&RHYTHMTYPE_SAMETIME) ? "r3.png" : "r2.png");
+	nodeinfo.head->setPosition(539, 539);
+	nodeinfo.head->setScale(0);
+	this->addChild(nodeinfo.head, 10);
+
+
+
+	//这里的song.speed并不表示速度，详细见定义
+	double speed =this->song.dSpeed;
+
+	float t1 = speed*this->songconfig.rate;
+	float dis = vGameArea[rh.pos].distance(vBornPoint);
+	float speedx = (vGameArea[rh.pos].x - vBornPoint.x) / (speed*this->songconfig.rate);
+	float speedy = (vGameArea[rh.pos].y - vBornPoint.y) / (speed*this->songconfig.rate);
+	float t2 = (songconfig.baddis/ dis)*t1;
+	Vec2 vGoal =Vec2(vGameArea[rh.pos].x + speedx*t2, vGameArea[rh.pos].y+speedy*t2);//miss时的位置
+	nodeQueue[rh.pos].push_back(nodeinfo);
+	nodeinfo.index = nodeQueue[rh.pos].size() - 1;
+
+	auto ac = Sequence::create(
+		Spawn::create(ScaleTo::create(t1, 1), MoveTo::create(t1, vGameArea[rh.pos]), NULL),
+		MoveTo::create(t2, vGoal),
+		CCCallFuncN::create([=](Ref *sender)
+	{
+		nodeinfo.head->setVisible(false);
+
+		Score result = nodeQueue[rh.pos][nodeinfo.index].result;
+
+		if (result == Score::NONE)
+			nodeQueue[rh.pos][nodeinfo.index].result = Score::MISS;
+		if (result == Score::NONE)
+			showScoreEffect(Score::MISS);
+
+
+	}), DelayTime::create(10), CCCallFuncN::create([=](Ref*sender)
+	{
+		this->removeChild(nodeinfo.head);
+	})
+
+		, NULL);
+	nodeinfo.head->runAction(ac);
 }
 void MainGame::born(const Rhythm &rh)
 {
-	//static int debug_cnt = 0;
-//	log("Anzer  born-%d begin", debug_cnt);
 	NodeInfo nodeinfo;
-
 	nodeinfo.type = rh.type;
 	if (rh.type&RHYTHMTYPE_LONG)//长型圆环（长旋律）
 	{
-		nodeinfo.head = Sprite::create((rh.type&RHYTHMTYPE_SAMETIME) ? "r3.png" : "r2.png");
-		nodeinfo.head->setPosition(539, 539);
-		nodeinfo.head->setScale(0);//长圆环的头圆环
-
-		nodeinfo.tail = Sprite::create("r1.png");
-		nodeinfo.tail->setPosition(539, 539);
-		nodeinfo.tail->setScale(0);
-
-		nodeinfo.noodle = CustomDrawNode::create();//画梯形
-		nodeinfo.noodle->setPosition(Vec2::ZERO);
-		nodeinfo.noodle->setAnchorPoint(Vec2::ZERO);
-		nodeinfo.noodle->head = nodeinfo.head;
-		nodeinfo.noodle->tail = nodeinfo.tail;
-		nodeinfo.noodle->pattern = true;
-		nodeinfo.noodle->tm = 0;
-		nodeinfo.noodle->atm = rh.endTime - rh.beginTime;//持续时间
-
-
-		
-		addChild(nodeinfo.head, 10);
-		addChild(nodeinfo.noodle, 8);
-		addChild(nodeinfo.tail, 10);
-
-		nodeQueue[rh.pos].push_back(nodeinfo);
-		nodeinfo.index = nodeQueue[rh.pos].size() - 1;
-		double speed = this->song.dSpeed;
-		float start_t1 = speed*this->songconfig.rate;//头圆环出生到到达头像处需要的时间
-		float dis = vGameArea[rh.pos].distance(vBornPoint);//该道的头像和出生点的距离
-
-		float start_t2 = (this-> songconfig.baddis/ dis)*start_t1;//判定为miss需要的时间
-
-		float end_t1 = (rh.endTime - rh.beginTime)*this->songconfig.rate;//尾圆环动作延迟时间
-		float end_t2 = speed*this->songconfig.rate;//尾圆环到达头像处需要的时间
-
-		//计算miss点，坐标
-		float speedx = (vGameArea[rh.pos].x - vBornPoint.x) / (speed*this->songconfig.rate);
-		float speedy = (vGameArea[rh.pos].y - vBornPoint.y) / (speed*this->songconfig.rate);
-		float end_t3 = (this->songconfig.baddis / dis)*end_t2;
-		Vec2 vGoal =Vec2 ( vGameArea[rh.pos].x + speedx*end_t3, vGameArea[rh.pos].y + speedy*end_t3 );//miss时的位置
-		//动作
-		Sequence *sq1 = Sequence::create(
-		Spawn::create(ScaleTo::create(start_t1, 1), MoveTo::create(start_t1, vGameArea[rh.pos]), NULL),					DelayTime::create(start_t2)
-		, CCCallFuncN::create([=](Ref*sender)
-		{
-			nodeinfo.head->setVisible(false);
-			nodeinfo.tail->setVisible(false);
-			nodeinfo.noodle->setVisible(false);
-
-
-		
-			Score result = nodeQueue[rh.pos][nodeinfo.index].result;
-
-			if (result == Score::NONE)
-				nodeQueue[rh.pos][nodeinfo.index].result = Score::MISS;
-
-			if (result == Score::NONE)
-			showScoreEffect(Score::MISS);
-			
-		})
-			, NULL);
-
-		Sequence *sq2 = Sequence::create(
-			DelayTime::create(end_t1), Spawn::create(ScaleTo::create(end_t2, 1), MoveTo::create(end_t2, vGameArea[rh.pos]), NULL), MoveTo::create(end_t3, vGoal)
-			, CCCallFuncN::create([=](Ref*sender)
-		{
-			nodeinfo.head->setVisible(false);
-			nodeinfo.tail->setVisible(false);
-			nodeinfo.noodle->setVisible(false);
-			
-			Score result = nodeQueue[rh.pos][nodeinfo.index].result_tail;
-
-			if (result == Score::NONE)
-				nodeQueue[rh.pos][nodeinfo.index].result_tail = Score::MISS;
-
-			if (result == Score::NONE)
-				showScoreEffect(Score::MISS);
-		})
-			, DelayTime::create(10), CCCallFuncN::create([=](Ref*sender)
-		{
-			this->removeChild(nodeinfo.head);
-			this->removeChild(nodeinfo.tail);
-			this->removeChild(nodeinfo.noodle);
-		})
-
-		, NULL);
-
-		nodeinfo.head->runAction(sq1);
-		nodeinfo.tail->runAction(sq2);
-		nodeinfo.noodle->scheduleUpdate();
+		Deal_with_long(nodeinfo, rh);
 	}
 	else
 	{
-		nodeinfo.head = Sprite::create((rh.type&RHYTHMTYPE_SAMETIME) ? "r3.png" : "r2.png");
-		nodeinfo.head->setPosition(539, 539);
-		nodeinfo.head->setScale(0);
-		this->addChild(nodeinfo.head, 10);
-
-
-
-		//这里的song.speed并不表示速度，详细见定义
-		double speed =this->song.dSpeed;
-
-		float t1 = speed*this->songconfig.rate;
-		float dis = vGameArea[rh.pos].distance(vBornPoint);
-		float speedx = (vGameArea[rh.pos].x - vBornPoint.x) / (speed*this->songconfig.rate);
-		float speedy = (vGameArea[rh.pos].y - vBornPoint.y) / (speed*this->songconfig.rate);
-		float t2 = (songconfig.baddis/ dis)*t1;
-		Vec2 vGoal =Vec2(vGameArea[rh.pos].x + speedx*t2, vGameArea[rh.pos].y+speedy*t2);//miss时的位置
-		nodeQueue[rh.pos].push_back(nodeinfo);
-		nodeinfo.index = nodeQueue[rh.pos].size() - 1;
-
-		auto ac = Sequence::create(
-			Spawn::create(ScaleTo::create(t1, 1), MoveTo::create(t1, vGameArea[rh.pos]), NULL),
-			MoveTo::create(t2, vGoal),
-			CCCallFuncN::create([=](Ref *sender)
-		{
-			nodeinfo.head->setVisible(false);
-
-			Score result = nodeQueue[rh.pos][nodeinfo.index].result;
-
-			if (result == Score::NONE)
-				nodeQueue[rh.pos][nodeinfo.index].result = Score::MISS;
-			if (result == Score::NONE)
-				showScoreEffect(Score::MISS);
-
-
-		}), DelayTime::create(10), CCCallFuncN::create([=](Ref*sender)
-		{
-			this->removeChild(nodeinfo.head);
-		})
-			
-			, NULL);
-		nodeinfo.head->runAction(ac);
-		
-
-		
+		Deal_with_tap(nodeinfo,rh);
 	}
-//	log("Anzer  born-%d end", debug_cnt++);
+	//	log("Anzer  born-%d end", debug_cnt++);
 }
 bool MainGame::checkTouch(int pos, const Vec2 &touchLocation)//这里采取的判定区域是在圆内+长方形内
 {
-	float dis = vGameArea[pos].distance(vBornPoint);
-	Rect checkRect = Rect(vGameArea[pos].x - this->songconfig.touchwidth, vGameArea[pos].y - this->songconfig.touchheight, this->songconfig.touchwidth * 2, this->songconfig.touchheight * 2);
-	auto point=touchLocation.rotateByAngle(vGameArea[pos], atan((vBornPoint.x - vGameArea[pos].x) / (vBornPoint.y - vGameArea[pos].y)));
+	float dis = vGameArea[pos].distance(vBornPoint);	//头像到出生点距离
+	float rectx = vGameArea[pos].x - this->songconfig.touchwidth;
+	float recty = vGameArea[pos].y - this->songconfig.touchheight;	//位置固定到头像左上角
+	float rectwidth = this->songconfig.touchwidth * 2;
+	float rectheight = this->songconfig.touchheight * 2;			//方形套住头像
+	Rect checkRect = Rect(rectx, recty, rectwidth , rectheight);
+	auto point=touchLocation.rotateByAngle(vGameArea[pos], atan((vBornPoint.x - vGameArea[pos].x) / (vBornPoint.y - vGameArea[pos].y)));	 //出生点和头像的连线，与水平线夹角
 	return (checkRect.containsPoint(point) && touchLocation.distance(vGameArea[pos]) < this->songconfig.touchdis);
-	
+
 }
-void MainGame::onTouchesBegan(const std::vector<Touch*>& touches, Event  *event)
+void MainGame::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
 {
 	for (auto touch : touches)
 	{
-		auto location = touch->getLocation();	//得到当前触摸点坐标
+		auto location = touch->getLocation(); //得到当前触摸点坐标
 		for (int i = 0; i < 9; i++)
 		{
-			if (checkTouch(i, location))	   
+			if (checkTouch(i, location))
 			{
 				//如果这个点位于判定区域内
-				while (queueHead[i] < nodeQueue[i].size() && nodeQueue[i][queueHead[i]].result != Score::NONE)						queueHead[i]++;
+				while (queueHead[i] < nodeQueue[i].size() && nodeQueue[i][queueHead[i]].result != Score::NONE) queueHead[i]++;
 				if (queueHead[i] >= nodeQueue[i].size())
 				{
 					continue;
 				}
-
 				auto tmp = nodeQueue[i][queueHead[i]];
 				auto sppos = tmp.head->getPosition();
 				float dis = vGameArea[i].distance(sppos);
@@ -589,12 +604,10 @@ void MainGame::onTouchesBegan(const std::vector<Touch*>& touches, Event  *event)
 				}
 				nodeQueue[i][queueHead[i]].result = score;
 				queueHead[i]++;
-	
 				showPressEffect(i);
 				if (tmp.type&RHYTHMTYPE_LONG)
 				{
 					log("press %d\n", i);
-					
 					//长条形被按住，停止动作并设置到头像处
 					table.insert(std::make_pair(touch, i));
 					tmp.head->stopAllActions();
@@ -604,19 +617,14 @@ void MainGame::onTouchesBegan(const std::vector<Touch*>& touches, Event  *event)
 						(Sequence::create(EaseIn::create(FadeOut::create(1), 2), EaseIn::create(FadeIn::create(1), 2), NULL)));
 				}
 				else tmp.head->setVisible(false);
-
 				showScoreEffect(score);
 			}
 		}
 	}
 }
-	
-
 
 void MainGame::update(float dt)
 {
-
-
 	curTime += dt;
 	if ((song.dDuration <= curTime) && curRhythm >=song.lstRhythm.size())//歌曲是否已经到达结束时间了
 	{
@@ -631,30 +639,26 @@ void MainGame::update(float dt)
 		return;
 	}
 	double speed = this->song.dSpeed;
+
 	while (curRhythm <song.lstRhythm.size() && (song.lstRhythm[curRhythm].beginTime - (speed*songconfig.rate)) <= curTime)
 	{
-		
-		born(song.lstRhythm[curRhythm++]);
-		
+		born(song.lstRhythm[curRhythm]);
+		curRhythm++;
 	}
-	
 }
 void MainGame::onTouchesMoved(const std::vector<Touch*>& touches, Event  *event)
 {
-	
+
 }
 
-void MainGame::onTouchesEnded(const std::vector<Touch*>& touches, Event  *event)
+void MainGame::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
 {
 	for (auto touch : touches)
 	{
 		auto iter = table.find(touch);
-
 		if (iter != table.end())
 		{
 			Score score;
-
-
 			auto tmp = (nodeQueue[iter->second])[queueHead[iter->second]-1];
 			score = tmp.result_tail;
 			if (score == Score::NONE)
@@ -680,8 +684,6 @@ void MainGame::onTouchesEnded(const std::vector<Touch*>& touches, Event  *event)
 				else score = Score::MISS;
 				nodeQueue[iter->second][queueHead[iter->second] - 1].result_tail = score;
 			}
-
-
 			if (nodeQueue[iter->second][queueHead[iter->second] - 1].result_tail != Score::NONE)
 			{
 				tmp.head->setVisible(false);
@@ -690,12 +692,9 @@ void MainGame::onTouchesEnded(const std::vector<Touch*>& touches, Event  *event)
 				showPressEffect(iter->second);
 				showScoreEffect(nodeQueue[iter->second][queueHead[iter->second] - 1].result_tail);
 			}
-			
 			table.erase(iter);
-
 		}
 	}
-	
 }
 
 void MainGame::onTouchesCancelled(const std::vector<Touch*>& touches, Event  *event)
@@ -745,7 +744,7 @@ void  MainGame::ResultScene()
 	};
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, spResult);
 	lyResult->addChild(spResult, 1);
-//写上得分等数据
+	//写上得分等数据
 	TTFConfig ttfConfig("fonts/arial.ttf", 42, GlyphCollection::DYNAMIC, nullptr, false);
 	auto lbPerfect = Label::createWithTTF(ttfConfig, String::createWithFormat("%d",cntPerfect)->_string);
 	lbPerfect->setColor(Color3B(255, 102, 153));
@@ -800,6 +799,6 @@ void  MainGame::ResultScene()
 
 
 	Director::getInstance()->replaceScene(scResult);
-	
+
 }
 

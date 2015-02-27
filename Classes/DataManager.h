@@ -91,8 +91,8 @@ struct SongInfo
 };
 struct Song
 {
-	double dDuration;
-	double dSpeed;
+	double dDuration;		//È«Çú³¤¶È
+	double dSpeed;			//
 	bool bUsable;
 	std::vector<Rhythm> lstRhythm;
 	Song()
