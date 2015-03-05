@@ -81,7 +81,7 @@ bool SelectSong::init()
 
 
 
-	auto btNormal = ui::Button::create("button_normal.png");
+	auto btNormal = ui::Button::create("button_expert.png");
 	btNormal->addTouchEventListener([=](Ref *pSender, ui::Widget::TouchEventType type)
 	{
 		if (type == ui::Widget::TouchEventType::ENDED)
@@ -93,7 +93,7 @@ bool SelectSong::init()
 	btNormal->setAnchorPoint(Vec2(0.5, 0.5));
 	addChild(btNormal, 13);
 
-	auto btFast = ui::Button::create("button_fast.png");
+	auto btFast = ui::Button::create("button_insane.png");
 	btFast->addTouchEventListener([=](Ref *pSender, ui::Widget::TouchEventType type)
 	{
 		if (type == ui::Widget::TouchEventType::ENDED)
@@ -105,7 +105,7 @@ bool SelectSong::init()
 	btFast->setAnchorPoint(Vec2(0.5, 0.5));
 	addChild(btFast, 13);
 
-	auto btSlow = ui::Button::create("botton_slow.png");
+	auto btSlow = ui::Button::create("botton_hard.png");
 	btSlow->addTouchEventListener([=](Ref *pSender, ui::Widget::TouchEventType type)
 	{
 		if (type == ui::Widget::TouchEventType::ENDED)
@@ -204,7 +204,7 @@ void SelectSong::StartGame(int Speed)
 	config.gooddis = UserDefault::getInstance()->getDoubleForKey("gooddis");
 	config.greatdis = UserDefault::getInstance()->getDoubleForKey("greatdis");
 	config.perfectdis = UserDefault::getInstance()->getDoubleForKey("perfectdis");
-	config.rate = Speed / 128;
+	config.rate = (float)128 / Speed;
 	Song song = DataManager::loadDataFile(songlist[curPos].sDataPath, songlist[curPos]);
 	bool enable_ran = cbRandom_enable->getSelectedState();
 	bool enable_ran_new = cbRandom_new->getSelectedState();
@@ -235,7 +235,7 @@ void SelectSong::createSprite(int pos)
 
 
 
-	lbName = Label::create(songlist[pos].sDisplayName, "Arial", 42);
+	lbName = Label::createWithSystemFont(songlist[pos].sDisplayName, "Arial", 42);
 	lbName->setPosition(Vec2(553, 720 - 480));
 	lbName->setOpacity(0);
 	lbName->runAction(FadeIn::create(0.5));

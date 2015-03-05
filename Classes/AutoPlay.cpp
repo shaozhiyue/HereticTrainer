@@ -39,13 +39,13 @@ void AutoPlay::Deal_with_long(NodeInfo &nodeinfo, const Rhythm &rh)
 	//	nodeQueue[rh.pos].push_back(nodeinfo);	//在节奏对应的lane加入该node
 	//	nodeinfo.index = nodeQueue[rh.pos].size() - 1;
 	//dspeed是真正在中间工作的速度
-	double speed = this->song.dSpeed;	//->hard128速，ex160速，假设hard里面圈圈从出生到运行至头像需要1秒，则ex里面为128/160秒
-	float start_t1 = speed * this -> songconfig.rate;//头圆环出生到到达头像处需要的时间
+	double speed = songconfig.rate;	//->hard128速，ex160速，假设hard里面圈圈从出生到运行至头像需要1秒，则ex里面为128/160秒
+	float start_t1 = songconfig.rate;//头圆环出生到到达头像处需要的时间
 	float dis = vGameArea[rh.pos].distance(vBornPoint);//该道的头像和出生点的距离
 
 
-	float end_t1 = (rh.endTime - rh.beginTime)*this->songconfig.rate;//头圆环动作延迟时间
-	float end_t2 = speed*this->songconfig.rate;//尾圆环到达头像处需要的时间
+	float end_t1 = (rh.endTime - rh.beginTime);//头圆环出现到尾圆环出现，中间差的时间
+	float end_t2 = songconfig.rate;//尾圆环到达头像处需要的时间
 
 
 	Vec2 vGoal = vGameArea[rh.pos];//自动谱直接算成员和的位置
@@ -106,11 +106,9 @@ void AutoPlay::Deal_with_tap(NodeInfo &nodeinfo, const Rhythm &rh)
 	//	nodeQueue[rh.pos].push_back(nodeinfo);	//在节奏对应的lane加入该node
 	//	nodeinfo.index = nodeQueue[rh.pos].size() - 1;
 	//dspeed是真正在中间工作的速度
-	double speed = this->song.dSpeed;	//->hard128速，ex160速，假设hard里面圈圈从出生到运行至头像需要1秒，则ex里面为128/160秒
-	float start_t1 = speed * this -> songconfig.rate;//头圆环出生到到达头像处需要的时间
+	double speed = songconfig.rate;	//->hard128速，ex160速，假设hard里面圈圈从出生到运行至头像需要1秒，则ex里面为128/160秒
+	float start_t1 = songconfig.rate;//头圆环出生到到达头像处需要的时间
 	float dis = vGameArea[rh.pos].distance(vBornPoint);//该道的头像和出生点的距离
-	float end_t1 = (rh.endTime - rh.beginTime)*this->songconfig.rate;//头圆环动作延迟时间
-	float end_t2 = speed*this->songconfig.rate;//尾圆环到达头像处需要的时间
 	Vec2 vGoal = vGameArea[rh.pos];//自动谱直接算成员和的位置
 	//动作
 	//长条的sequence：创建一个spawn（头部圈圈用start_t1到正常大小，并且从原点移动到对应头像），接着将条头固定于头像上面并播放击打和评分动画（combo不增加），然后条尾运动到头像，播放击打动画，combo增加，播放评分动画
