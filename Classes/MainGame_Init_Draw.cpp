@@ -5,6 +5,7 @@
 #include "audio\include\AudioEngine.h"
 #include "AndroidAudio.h"
 #include "Autoplay.h"
+#include "Global_timeline_varibles.h"
 USING_NS_CC;
 using namespace ui;
 
@@ -95,6 +96,12 @@ bool MainGame::init(const SongInfo &songinfo, const Song &song, const SongConfig
 	addChild(btStop, 0);
 	//开启循环制造旋律
 	this->schedule(schedule_selector(MainGame::update), 1/60);
+	//
+	//记录函数调用完成的时间，作为音乐开始时间
+	SystemTime::Music_start = SystemTime::getSystemTime();
+	SystemTime::Pause_time = 0;
+	cocos2d::log("u's Music Start!!! at %f", SystemTime::Music_start);
+	//
 	return true;
 }
 void MainGame::Init_Background()

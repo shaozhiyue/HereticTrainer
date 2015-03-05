@@ -1,5 +1,6 @@
 #include "MainGame.h"
 #include "SelectSong.h"
+#include "Global_timeline_varibles.h"
 USING_NS_CC;
 using namespace ui;
 
@@ -135,6 +136,7 @@ void  MainGame::StopSence()
 	btContinue->addTouchEventListener([=](Ref *pSender, ui::Widget::TouchEventType type)
 	{if (type == ui::Widget::TouchEventType::ENDED)
 	{
+		SystemTime::Pause_time = SystemTime::getSystemTime();
 		Director::getInstance()->popScene();
 #if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 		Resume();
@@ -163,5 +165,5 @@ void  MainGame::StopSence()
 	//
 	lyStop->addChild(btReturn, 2);
 	Director::getInstance()->pushScene(scStop);
-
+	SystemTime::Pause_time -= SystemTime::getSystemTime();
 }

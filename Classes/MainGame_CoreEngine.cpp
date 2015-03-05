@@ -5,6 +5,7 @@
 #include <math.h>
 #include "audio\include\AudioEngine.h"
 #include "AndroidAudio.h"
+#include "Global_timeline_varibles.h"
 USING_NS_CC;
 void MainGame::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
 {
@@ -68,7 +69,7 @@ void MainGame::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
 
 void MainGame::update(float dt)
 {
-	curTime += dt;
+	curTime = SystemTime::getSystemTime() - SystemTime::Music_start - SystemTime::Pause_time;
 	if ((song.dDuration <= curTime) && curRhythm >=song.lstRhythm.size())//歌曲是否已经到达结束时间了
 	{
 

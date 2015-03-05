@@ -27,5 +27,4 @@ double SystemTime::getSystemTime()
 #endif
 }  
 double SystemTime::Music_start = 0;
-double SystemTime::CurrentSystemTime = 0;
 double SystemTime::Pause_time = 0;

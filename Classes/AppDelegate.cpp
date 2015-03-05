@@ -10,6 +10,7 @@
 #include"AndroidAudio.h"
 #endif
 #include <stdio.h>
+#include "Global_timeline_varibles.h"
 //#include "build\platforms\android-8\arch-arm\usr\include\android\log.h"
 //#define TAG "HereticTrainer_init"
 //#define LOGD(бн) __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
@@ -99,7 +100,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
 // This function will be called when the app is inactive. When comes a phone call,it's be invoked too
 void AppDelegate::applicationDidEnterBackground() {
 	Director::getInstance()->stopAnimation();
-
+	SystemTime::Pause_time -= SystemTime::getSystemTime();
 	// if you use SimpleAudioEngine, it must be pause
 	#if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 		Pause();
@@ -111,6 +112,7 @@ void AppDelegate::applicationDidEnterBackground() {
 // this function will be called when the app is active again
 void AppDelegate::applicationWillEnterForeground() {
     Director::getInstance()->startAnimation();
+	SystemTime::Pause_time += SystemTime::getSystemTime();
 	#if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 	Resume();
 	#else
