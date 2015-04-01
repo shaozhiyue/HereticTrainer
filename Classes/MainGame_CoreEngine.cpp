@@ -69,7 +69,24 @@ void MainGame::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
 
 void MainGame::update(float dt)
 {
-	curTime = SystemTime::getSystemTime() - SystemTime::Music_start - SystemTime::Pause_time;
+	if(!musicstart)
+	{
+		if (songconfig.bPlayMusic)
+#if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+			if(Prepare(songinfo.sMusicPath.c_str()))
+			{
+				PlayMusic();
+			}
+#else
+			experimental::AudioEngine::play2d(songinfo.sMusicPath);
+#endif
+		cocos2d::log("u's Music Start!!! at %f", SystemTime::Music_start);
+		musicstart = true;
+		return;
+	}
+	curTime += dt;
+	cocos2d::log("Curtime = %f", curTime);
+	Frames++;
 	if ((song.dDuration <= curTime) && curRhythm >=song.lstRhythm.size())//∏Ë«˙ «∑Ò“—æ≠µΩ¥ÔΩ· ¯ ±º‰¡À
 	{
 
@@ -86,6 +103,24 @@ void MainGame::update(float dt)
 	{
 		born(song.lstRhythm[curRhythm]);
 		curRhythm++;
+	}
+	for (int i = 0; i < 9; i++)
+	{
+		while (queueHead[i] < queueTail[i])
+		{
+			if(nodeQueue[i][queueHead[i]].result != Score::NONE)
+				queueHead[i]++;
+			else 
+				break;
+		}
+		if (queueHead[i] > queueTail[i])
+		{
+			continue;
+		}
+		for(int x = queueHead[i]; x <= queueTail[i];x++)
+		{
+			SetCirclePosition(&nodeQueue[i][x]);
+		}
 	}
 }
 void MainGame::onTouchesMoved(const std::vector<Touch*>& touches, Event  *event)
@@ -168,4 +203,43 @@ bool MainGame::checkTouch(int pos, const Vec2 &touchLocation)//’‚¿Ô≤…»°µƒ≈–∂®«¯”
 	auto point=touchLocation.rotateByAngle(vGameArea[pos], atan((vBornPoint.x - vGameArea[pos].x) / (vBornPoint.y - vGameArea[pos].y)));	 //≥ˆ…˙µ„∫ÕÕ∑œÒµƒ¡¨œﬂ£¨”ÎÀÆ∆Ωœﬂº–Ω«
 	return (checkRect.containsPoint(point) && touchLocation.distance(vGameArea[pos]) < this->songconfig.touchdis);
 
+}
+void MainGame::SetCirclePosition(NodeInfo* nodeinfo)
+{
+	//’‚¿Ôµƒsong.speed≤¢≤ª±Ì æÀŸ∂»£¨œÍœ∏º˚∂®“Â
+	if(nodeinfo -> result == Score::NONE)
+	{
+		Rhythm rh = song.lstRhythm[nodeinfo -> number];
+		if(!(rh.type & RHYTHMTYPE_LONG))
+		{
+			double speed = songconfig.rate;
+			float t1 = songconfig.rate;
+			float dis = vGameArea[rh.pos].distance(vBornPoint);
+			float t2 = (songconfig.baddis/ dis) * t1;
+			Sprite* sp = nodeinfo ->head;
+			float Delta = curTime + speed - rh.beginTime;	//note¥”≥ˆ…˙µΩmiss“ªπ≤“™æ≠¿˙ speed + misstime, DeltaŒ™note◊‘≥ˆ…˙µΩµ±«∞æ≠π˝µƒ ±º‰
+
+			float scale = Delta / speed;	//∏˘æ›scale…Ë÷√µ±«∞µƒnoteµƒ¥Û–°“‘º∞Œª÷√
+			sp->setScale(scale);
+			float positionx = vBornPoint.x + (vGameArea[rh.pos].x - vBornPoint.x) * scale;
+			float positiony = vBornPoint.y + (vGameArea[rh.pos].y - vBornPoint.y) * scale;
+			sp->setPosition(positionx,positiony);
+			if(nodeinfo -> result != Score::NONE && nodeinfo -> result != Score::MISS)	//»Áπ˚µ√µΩ¡À∆¿º€
+			{
+				showScoreEffect(nodeinfo -> result);//œ‘ æ¥Úª˜–ßπ˚≤¢Ω´node…ËŒ™≤ªø…º˚£¨¥”sceneµ±÷–“∆»•
+				nodeinfo -> head->setVisible(false);
+				removeChild(nodeinfo ->head);
+			}
+			if(Delta > speed + songconfig.baddis / 1000)
+			{
+				//miss
+				//
+				showScoreEffect(Score::MISS);
+				nodeinfo ->result = (Score::MISS);
+				nodeinfo ->head->setVisible(false);
+				removeChild(nodeinfo ->head);
+
+			}
+		}
+	}
 }

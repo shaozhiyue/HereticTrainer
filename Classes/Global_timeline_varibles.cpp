@@ -23,6 +23,7 @@ double SystemTime::getSystemTime()
 	t += sys.wMinute * 60;
 	t += sys.wSecond;
 	t += ((double)sys.wMilliseconds) / 1000;
+	cocos2d::log("Time: %f", t);
 	return t;
 #endif
 }  

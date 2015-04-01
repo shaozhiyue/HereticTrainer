@@ -63,19 +63,8 @@ bool MainGame::init(const SongInfo &songinfo, const Song &song, const SongConfig
 		return false;
 	}
 	log("Anzer init begin");
-	//播放音乐
-	//log("Anzer init end");
-	if (songconfig.bPlayMusic)
-#if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-		if(Prepare(songinfo.sMusicPath.c_str()))
-		{
-			PlayMusic();
-		}
-#else
-		experimental::AudioEngine::play2d(songinfo.sMusicPath);
-#endif
-	//log("Anzer init end2");
 	memset(queueHead, 0, sizeof(queueHead));
+	memset(queueTail, -1, sizeof(queueTail));
 	this->song = song;
 	this->songinfo = songinfo;
 	this->songconfig = songfig;
@@ -100,7 +89,6 @@ bool MainGame::init(const SongInfo &songinfo, const Song &song, const SongConfig
 	//记录函数调用完成的时间，作为音乐开始时间
 	SystemTime::Music_start = SystemTime::getSystemTime();
 	SystemTime::Pause_time = 0;
-	cocos2d::log("u's Music Start!!! at %f", SystemTime::Music_start);
 	//
 	return true;
 }
@@ -359,7 +347,9 @@ void MainGame::Deal_with_long(NodeInfo &nodeinfo, const Rhythm &rh)
 	addChild(nodeinfo.head, 10);
 	addChild(nodeinfo.noodle, 8);
 	addChild(nodeinfo.tail, 10);
+	nodeinfo.number = curRhythm;
 	nodeQueue[rh.pos].push_back(nodeinfo);	//在节奏对应的lane加入该node
+	queueTail[rh.pos] = nodeQueue[rh.pos].size() - 1;	//节奏队列的队尾
 	nodeinfo.index = nodeQueue[rh.pos].size() - 1;
 
 
@@ -435,9 +425,11 @@ void MainGame::Deal_with_tap(NodeInfo &nodeinfo, const Rhythm &rh)
 	nodeinfo.head = Sprite::create((rh.type&RHYTHMTYPE_SAMETIME) ? "r3.png" : "r2.png");
 	nodeinfo.head->setPosition(539, 539);
 	nodeinfo.head->setScale(0);
+	nodeinfo.number = curRhythm;
 	this->addChild(nodeinfo.head, 10);
-
-
+	nodeQueue[rh.pos].push_back(nodeinfo);
+	nodeinfo.index = nodeQueue[rh.pos].size() - 1;
+	queueTail[rh.pos] = nodeQueue[rh.pos].size() - 1;	//节奏队列的队尾
 
 	//这里的song.speed并不表示速度，详细见定义
 	double speed = songconfig.rate;
@@ -447,11 +439,10 @@ void MainGame::Deal_with_tap(NodeInfo &nodeinfo, const Rhythm &rh)
 	float speedx = (vGameArea[rh.pos].x - vBornPoint.x) / (songconfig.rate);
 	float speedy = (vGameArea[rh.pos].y - vBornPoint.y) / (songconfig.rate);
 	float t2 = (songconfig.baddis/ dis)*t1;
-	Vec2 vGoal =Vec2(vGameArea[rh.pos].x + speedx*t2, vGameArea[rh.pos].y+speedy*t2);//miss时的位置
-	nodeQueue[rh.pos].push_back(nodeinfo);
-	nodeinfo.index = nodeQueue[rh.pos].size() - 1;
+	//Vec2 vGoal =Vec2(vGameArea[rh.pos].x + speedx*t2, vGameArea[rh.pos].y+speedy*t2);//miss时的位置
 
-	auto ac = Sequence::create(
+
+	/*auto ac = Sequence::create(
 		Spawn::create(ScaleTo::create(t1, 1), MoveTo::create(t1, vGameArea[rh.pos]), NULL),
 		MoveTo::create(t2, vGoal),
 		CCCallFuncN::create([=](Ref *sender)
@@ -472,7 +463,7 @@ void MainGame::Deal_with_tap(NodeInfo &nodeinfo, const Rhythm &rh)
 	})
 
 		, NULL);
-	nodeinfo.head->runAction(ac);
+	nodeinfo.head->runAction(ac);*/
 }
 
 

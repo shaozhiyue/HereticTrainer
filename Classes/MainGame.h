@@ -25,6 +25,7 @@ struct NodeInfo
 	CustomDrawNode* noodle;
 	int type;	//类型
 	int index;	//node在当前人物头像（lane）的note列中的位置
+	int number;
 	Score result;
 	Score result_tail;
 	NodeInfo()
@@ -34,6 +35,7 @@ struct NodeInfo
 		noodle = NULL;
 		type=0;
 		index=0;
+		number = 0;
 		result = Score::NONE;
 		result_tail = Score::NONE;
 	}
@@ -56,7 +58,7 @@ public:
 	cocos2d::ui::Button* btStop;
 
 	int curRhythm;
-	int curRhythm_auto;
+	int Frames;
 	double curTime;
 	//记录
 	int maxCombo;
@@ -71,15 +73,17 @@ public:
 	Song song;//当前的歌曲数据
 	SongInfo songinfo;
 	SongConfig songconfig;
+	bool musicstart;	//歌曲已经开始
 
 
 	std::vector<NodeInfo> nodeQueue[9];	//nodequeue即1-9号位上出现的note的信息
 	int queueHead[9];
+	int queueTail[9];
 	std::unordered_map<cocos2d::Touch*, int > table;//保存某次触摸是属于哪一个道的圆环的
 	std::unordered_map<int, Rhythm> table_auto;//自动谱，长条音符保持
 	MainGame()
 	{
-		curRhythm_auto = 0;
+		Frames = 0;
 		curRhythm = 0;
 		curTime = 0;
 		maxCombo = 0;
@@ -90,6 +94,7 @@ public:
 		cntBad = 0;
 		cntMiss = 0;
 		mGameMode = GAMEMODE_NORMAL;
+		musicstart = false;
 	}
 
 	// there's no 'id' in cpp, so we recommend returning the class instance pointer
@@ -118,6 +123,7 @@ public:
 	void Init_TouchLayer();//创建触摸层
 	void Init_Background();//背景图绘制
 	void born(const Rhythm &rh);//c产生圆
+	void SetCirclePosition(NodeInfo* nodeinfo);
 	void AutoPlay(float t);	//自动打谱
 
 	//触摸事件

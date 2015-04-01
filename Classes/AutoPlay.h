@@ -7,7 +7,7 @@ class AutoPlay:MainGame
 public:
 	AutoPlay()
 	{
-		curRhythm_auto = 0;
+		Frames = 0;
 		curRhythm = 0;
 		curTime = 0;
 		maxCombo = 0;

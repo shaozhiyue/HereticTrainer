@@ -1,6 +1,7 @@
 #include "MainGame.h"
 #include "SelectSong.h"
 #include "Global_timeline_varibles.h"
+#include "audio\include\AudioEngine.h"
 USING_NS_CC;
 using namespace ui;
 
