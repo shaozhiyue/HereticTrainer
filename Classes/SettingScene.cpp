@@ -81,29 +81,29 @@ bool SettingScene::init()
 	slBad->addEventListener(CC_CALLBACK_2(SettingScene::sliderEventBad, this));
 	addChild(slBad, 13);
 
-	auto lbPFC = Label::createWithSystemFont("Perfect标准:", "Arial", 24);
+	auto lbPFC = Label::create("Perfect标准:", "Arial", 24);
 	lbPFC->setPosition(Vec2(206, 720 - 168));
 	addChild(lbPFC, 13);
-	auto lbGRC = Label::createWithSystemFont("Great标准:", "Arial", 24);
+	auto lbGRC = Label::create("Great标准:", "Arial", 24);
 	lbGRC->setPosition(Vec2(206, 720 - 276));
 	addChild(lbGRC, 13);
-	auto lbGDC = Label::createWithSystemFont("Good标准:", "Arial", 24);
+	auto lbGDC = Label::create("Good标准:", "Arial", 24);
 	lbGDC->setPosition(Vec2(206, 720 - 364));
 	addChild(lbGDC, 13);
-	auto lbBDC = Label::createWithSystemFont("Bad标准:", "Arial", 24);
+	auto lbBDC = Label::create("Bad标准:", "Arial", 24);
 	lbBDC->setPosition(Vec2(206, 720 - 451));
 	addChild(lbBDC, 13);
 
-	lbPerfect = Label::createWithSystemFont("100", "Arial",18);
+	lbPerfect = Label::create("100", "Arial",18);
 	lbPerfect->setPosition(Vec2(935, 720 - 168));
 	addChild(lbPerfect, 13);
-	lbGreat = Label::createWithSystemFont("100", "Arial", 18);
+	lbGreat = Label::create("100", "Arial", 18);
 	lbGreat->setPosition(Vec2(935, 720 - 276));
 	addChild(lbGreat, 13);
-	lbGood = Label::createWithSystemFont("100", "Arial", 18);
+	lbGood = Label::create("100", "Arial", 18);
 	lbGood->setPosition(Vec2(935, 720 - 364));
 	addChild(lbGood, 13);
-	lbBad = Label::createWithSystemFont("100", "Arial", 18);
+	lbBad = Label::create("100", "Arial", 18);
 	lbBad->setPosition(Vec2(935, 720 - 451));
 	addChild(lbBad, 13);
 

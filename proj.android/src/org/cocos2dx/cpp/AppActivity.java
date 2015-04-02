@@ -73,7 +73,7 @@ public class AppActivity extends Cocos2dxActivity
     private static void playEffectPerfect()
     {
         sp.play(idPerfect, 1.0f, 1.0f, 1, 0, 1);
-    }                                             
+    }
     private static void playEffectGood()
     {
         sp.play(idGood, 1.0f, 1.0f, 1, 0, 1);
