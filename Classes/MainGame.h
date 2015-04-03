@@ -27,6 +27,7 @@ struct NodeInfo
 	int index;	//node在当前人物头像（lane）的note列中的位置
 	Score result;
 	Score result_tail;
+	Rhythm* rh;
 	NodeInfo()
 	{	
 		head = NULL;
@@ -54,8 +55,10 @@ public:
 	cocos2d::Label* lbCombo;
 	cocos2d::Label*  lbComboCnt;
 	cocos2d::ui::Button* btStop;
+	cocos2d::Label* lbAccuracy;
 
 	int curRhythm;
+	int curRhythm_passed;
 	int curRhythm_auto;
 	double curTime;
 	//记录
@@ -66,8 +69,11 @@ public:
 	int cntGood;
 	int cntBad;
 	int cntMiss;
+	bool paused;
 	//游戏的额外模式
 	int mGameMode;
+	float AverageAccuracy;	//平均准确度
+	float AverageDelay;		//平均延迟
 	Song song;//当前的歌曲数据
 	SongInfo songinfo;
 	SongConfig songconfig;
@@ -81,6 +87,7 @@ public:
 	{
 		curRhythm_auto = 0;
 		curRhythm = 0;
+		curRhythm_passed = 0;
 		curTime = 0;
 		maxCombo = 0;
 		curCombo = 0;
@@ -90,28 +97,16 @@ public:
 		cntBad = 0;
 		cntMiss = 0;
 		mGameMode = GAMEMODE_NORMAL;
+		AverageAccuracy = 0;	//平均准确度
+		AverageDelay = 0;
+		paused = false;
 	}
 
 	// there's no 'id' in cpp, so we recommend returning the class instance pointer
 	static cocos2d::Scene* createScene(const SongInfo &songinfo,const Song &song, const SongConfig &songfig);
 	static cocos2d::Scene* createScene(const SongInfo &songinfo, const Song &song, const SongConfig &songfig, int GameMode);
 	bool init(const SongInfo& songinfo, const Song &song, const SongConfig &songfig);
-	static MainGame* create(const SongInfo &songinfo, const Song &song, const SongConfig &songfig, int GameMode)
-	{  
-		MainGame *pRet = new MainGame(); 
-		pRet->mGameMode = GameMode;
-		if (pRet && pRet->init(songinfo,song,songfig))
-		{ 
-			pRet->autorelease(); 
-			return pRet; 
-		} 
-		else 
-		{ 
-			delete pRet; 
-			pRet = NULL; 
-			return NULL; 
-		} 
-	}
+	static MainGame* create(const SongInfo &songinfo, const Song &song, const SongConfig &songfig, int GameMode);
 	virtual void Deal_with_long(NodeInfo &nodeinfo, const Rhythm &rh);//创建长条	,autoplay类进行覆盖
 	virtual void Deal_with_tap(NodeInfo &nodeinfo, const Rhythm &rh);//创建单键	,autoplay类进行覆盖
 	void Init_Spr_Score_cb(); //创造combo和分数评价的spr

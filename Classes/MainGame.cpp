@@ -6,11 +6,28 @@
 #include "audio\include\AudioEngine.h"
 #include "AndroidAudio.h"
 #include "Autoplay.h"
+#include "AppDelegate.h"
+#define MABS(X) ((X > 0.0f) ? (X = X): (X = -X))
 USING_NS_CC;
 using namespace ui;
 
-
-
+MainGame* MainGame::create(const SongInfo &songinfo, const Song &song, const SongConfig &songfig, int GameMode)
+{  
+		MainGame *pRet = new MainGame(); 
+		pRet->mGameMode = GameMode;
+		if (pRet && pRet->init(songinfo,song,songfig))
+		{ 
+			pRet->autorelease(); 
+			thisgame = pRet;
+			return pRet; 
+		} 
+		else 
+		{ 
+			delete pRet; 
+			pRet = NULL; 
+			return NULL; 
+		} 
+}
 Scene* MainGame::createScene(const SongInfo &songinfo, const Song &song, const SongConfig &songfig)
 {
 	// 'scene' is an autorelease object
@@ -163,6 +180,10 @@ void MainGame::Init_Background()
 	spOnfuku->runAction(sqOnfuku);
 	addChild(spOnfuku, 10);
 	//波动的圈圈动作设定完毕，播放动画
+	lbAccuracy = Label::createWithSystemFont(String::createWithFormat("Acc on Current tap = 0， Average Accuracy = 0 ms ")->_string,"Times New Roman", 24);
+	lbAccuracy->setColor(Color3B(255, 102, 153));
+	lbAccuracy->setPosition(Vec2(539, 660));
+	addChild(lbAccuracy, 9);
 }
 void MainGame::Init_Spr_Score_cb()
 {
@@ -219,6 +240,7 @@ void MainGame::Init_TouchLayer()
 void  MainGame::StopSence()
 {
 	//	TextureCache::getInstance()->removeUnusedTextures();
+	paused = true;
 #if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 	Pause();
 #else
@@ -250,6 +272,7 @@ void  MainGame::StopSence()
 	btContinue->addTouchEventListener([=](Ref *pSender, ui::Widget::TouchEventType type)
 	{if (type == ui::Widget::TouchEventType::ENDED)
 	{
+		paused = false;
 		Director::getInstance()->popScene();
 #if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 		Resume();
@@ -264,7 +287,7 @@ void  MainGame::StopSence()
 	btReturn->setPosition(Vec2(704, 194));
 	btReturn->addTouchEventListener([=](Ref *pSender, ui::Widget::TouchEventType type){if (type == ui::Widget::TouchEventType::ENDED) {
 		_eventDispatcher->removeEventListener(this->listener);
-
+		thisgame = nullptr;
 #if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 		Stop();
 #else
@@ -399,9 +422,15 @@ void MainGame::showScoreEffect(Score score)
 }
 void MainGame::Deal_with_long(NodeInfo &nodeinfo, const Rhythm &rh)
 {
+	double speed = songconfig.rate;	//->hard128速，ex160速，假设hard里面圈圈从出生到运行至头像需要1秒，则ex里面为128/160秒
+	float Delta = curTime + speed - rh.beginTime;
+	float scalebegin = Delta / speed;
+	cocos2d::log("Delta = %f", Delta);
+	float positionx = (vGameArea[rh.pos].x - vBornPoint.x) * scalebegin + vBornPoint.x;
+	float positiony = (vGameArea[rh.pos].y - vBornPoint.y) * scalebegin + vBornPoint.y;
 	nodeinfo.head = Sprite::create((rh.type&RHYTHMTYPE_SAMETIME) ? "r3.png" : "r2.png");
-	nodeinfo.head->setPosition(539, 539);
-	nodeinfo.head->setScale(0);//长圆环的头圆环
+	nodeinfo.head->setPosition(positionx, positiony);
+	nodeinfo.head->setScale(scalebegin);//长圆环的头圆环
 
 	nodeinfo.tail = Sprite::create("r1.png");
 	nodeinfo.tail->setPosition(539, 539);
@@ -415,9 +444,7 @@ void MainGame::Deal_with_long(NodeInfo &nodeinfo, const Rhythm &rh)
 	nodeinfo.noodle->pattern = true;
 	nodeinfo.noodle->tm = 0;
 	nodeinfo.noodle->atm = rh.endTime - rh.beginTime;//持续时间
-
-
-
+	nodeinfo.rh = &song.lstRhythm[curRhythm];
 	addChild(nodeinfo.head, 10);
 	addChild(nodeinfo.noodle, 8);
 	addChild(nodeinfo.tail, 10);
@@ -425,18 +452,18 @@ void MainGame::Deal_with_long(NodeInfo &nodeinfo, const Rhythm &rh)
 	nodeQueue[rh.pos].push_back(nodeinfo);	//在节奏对应的lane加入该node
 	nodeinfo.index = nodeQueue[rh.pos].size() - 1;
 	//dspeed是真正在中间工作的速度
-	double speed = this->song.dSpeed;	//->hard128速，ex160速，假设hard里面圈圈从出生到运行至头像需要1秒，则ex里面为128/160秒
-	float start_t1 = speed * this -> songconfig.rate;//头圆环出生到到达头像处需要的时间
+
+	float start_t1 = speed - Delta;//头圆环出生到到达头像处需要的时间
 	float dis = vGameArea[rh.pos].distance(vBornPoint);//该道的头像和出生点的距离
 
-	float start_t2 = (this-> songconfig.baddis/ dis)*start_t1;//判定为miss需要的时间
+	float start_t2 = (this -> songconfig.baddis / dis) * speed;//判定为miss需要的时间
 
-	float end_t1 = (rh.endTime - rh.beginTime)*this->songconfig.rate;//头圆环动作延迟时间
-	float end_t2 = speed*this->songconfig.rate;//尾圆环到达头像处需要的时间
+	float end_t1 = (rh.endTime - rh.beginTime);               //wei圆环动作延迟时间
+	float end_t2 = speed;//尾圆环到达头像处需要的时间
 
 	//计算miss点，坐标
-	float speedx = (vGameArea[rh.pos].x - vBornPoint.x) / (speed*this->songconfig.rate);
-	float speedy = (vGameArea[rh.pos].y - vBornPoint.y) / (speed*this->songconfig.rate);
+	float speedx = (vGameArea[rh.pos].x - vBornPoint.x) / (speed);
+	float speedy = (vGameArea[rh.pos].y - vBornPoint.y) / (speed);
 	//利用速度合成公式
 	float end_t3 = (this->songconfig.baddis / dis)*end_t2;
 	//end_t3:Bad_margin X end_t2 / DISTANCE_ORI_TARGET 总之是个比率，乘以速度就能得到判定miss时额外坐标....(这么麻烦？。。。。好吧尾巴是会飞过去的，会判出miss )
@@ -459,6 +486,8 @@ void MainGame::Deal_with_long(NodeInfo &nodeinfo, const Rhythm &rh)
 		{	
 			nodeQueue[rh.pos][nodeinfo.index].result = Score::MISS;
 			showScoreEffect(Score::MISS);
+			nodeQueue[rh.pos][nodeinfo.index].result = Score::MISS;
+			showScoreEffect(Score::MISS);
 			//如果没有任何评分则算miss了
 		}
 	})
@@ -478,6 +507,9 @@ void MainGame::Deal_with_long(NodeInfo &nodeinfo, const Rhythm &rh)
 		{
 			nodeQueue[rh.pos][nodeinfo.index].result_tail = Score::MISS;
 			showScoreEffect(Score::MISS);
+			nodeQueue[rh.pos][nodeinfo.index].result = Score::MISS;
+			showScoreEffect(Score::MISS);
+			showScoreEffect(Score::MISS);
 		}
 	})
 		, DelayTime::create(10), CCCallFuncN::create([=](Ref*sender)
@@ -495,21 +527,27 @@ void MainGame::Deal_with_long(NodeInfo &nodeinfo, const Rhythm &rh)
 }
 void MainGame::Deal_with_tap(NodeInfo &nodeinfo, const Rhythm &rh)
 {
+	double speed = songconfig.rate;
+	float Delta = curTime + speed - rh.beginTime;
+	float scalebegin = Delta / speed;
+	cocos2d::log("Delta = %f", Delta);
+	float positionx = (vGameArea[rh.pos].x - vBornPoint.x) * scalebegin + vBornPoint.x;
+	float positiony = (vGameArea[rh.pos].y - vBornPoint.y) * scalebegin + vBornPoint.y;
 	nodeinfo.head = Sprite::create((rh.type&RHYTHMTYPE_SAMETIME) ? "r3.png" : "r2.png");
-	nodeinfo.head->setPosition(539, 539);
-	nodeinfo.head->setScale(0);
+	nodeinfo.head->setPosition(positionx, positiony);
+	nodeinfo.head->setScale(scalebegin);
 	this->addChild(nodeinfo.head, 10);
-
+	nodeinfo.rh = &song.lstRhythm[curRhythm];
 
 
 	//这里的song.speed并不表示速度，详细见定义
-	double speed =this->song.dSpeed;
 
-	float t1 = speed*this->songconfig.rate;
+
+	float t1 = speed - Delta;
 	float dis = vGameArea[rh.pos].distance(vBornPoint);
-	float speedx = (vGameArea[rh.pos].x - vBornPoint.x) / (speed*this->songconfig.rate);
-	float speedy = (vGameArea[rh.pos].y - vBornPoint.y) / (speed*this->songconfig.rate);
-	float t2 = (songconfig.baddis/ dis)*t1;
+	float speedx = (vGameArea[rh.pos].x - vBornPoint.x) / (speed);
+	float speedy = (vGameArea[rh.pos].y - vBornPoint.y) / (speed);
+	float t2 = (songconfig.baddis/ dis) * t1;
 	Vec2 vGoal =Vec2(vGameArea[rh.pos].x + speedx*t2, vGameArea[rh.pos].y+speedy*t2);//miss时的位置
 	nodeQueue[rh.pos].push_back(nodeinfo);
 	nodeinfo.index = nodeQueue[rh.pos].size() - 1;
@@ -524,10 +562,10 @@ void MainGame::Deal_with_tap(NodeInfo &nodeinfo, const Rhythm &rh)
 		Score result = nodeQueue[rh.pos][nodeinfo.index].result;
 
 		if (result == Score::NONE)
+		{
 			nodeQueue[rh.pos][nodeinfo.index].result = Score::MISS;
-		if (result == Score::NONE)
 			showScoreEffect(Score::MISS);
-
+		}
 
 	}), DelayTime::create(10), CCCallFuncN::create([=](Ref*sender)
 	{
@@ -618,6 +656,12 @@ void MainGame::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
 				}
 				else tmp.head->setVisible(false);
 				showScoreEffect(score);
+				curRhythm_passed++;
+			
+				float currAcc = (curTime - tmp.rh -> beginTime);
+				cocos2d::log("Acc = %f, AbsAcc = %f",currAcc,MABS(currAcc));
+				AverageAccuracy += MABS(currAcc);
+						lbAccuracy->setString(String::createWithFormat("Acc on Current tap = %f ms,Average Accuracy = %f ms ", MABS(currAcc) * 1000, AverageAccuracy * 1000/ curRhythm_passed)->_string);
 			}
 		}
 	}
@@ -626,6 +670,7 @@ void MainGame::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
 void MainGame::update(float dt)
 {
 	curTime += dt;
+	cocos2d::log("curTime = %f, Dt = %f", curTime, dt);
 	if ((song.dDuration <= curTime) && curRhythm >=song.lstRhythm.size())//歌曲是否已经到达结束时间了
 	{
 
@@ -640,7 +685,7 @@ void MainGame::update(float dt)
 	}
 	double speed = this->song.dSpeed;
 
-	while (curRhythm <song.lstRhythm.size() && (song.lstRhythm[curRhythm].beginTime - (speed*songconfig.rate)) <= curTime)
+	while (curRhythm <song.lstRhythm.size() && (song.lstRhythm[curRhythm].beginTime - (songconfig.rate)) <= curTime)
 	{
 		born(song.lstRhythm[curRhythm]);
 		curRhythm++;
@@ -691,6 +736,11 @@ void MainGame::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
 				tmp.noodle->setVisible(false);
 				showPressEffect(iter->second);
 				showScoreEffect(nodeQueue[iter->second][queueHead[iter->second] - 1].result_tail);
+				curRhythm_passed++;
+				float currAcc = (curTime - tmp.rh -> endTime);
+				cocos2d::log("Acc = %f, AbsAcc = %f",currAcc,MABS(currAcc));
+				AverageAccuracy += MABS(currAcc);
+				lbAccuracy->setString(String::createWithFormat("Acc on Current tap = %f ms,Average Accuracy = %f ms ", MABS(currAcc) * 1000, AverageAccuracy * 1000/ curRhythm_passed)->_string);
 			}
 			table.erase(iter);
 		}
@@ -792,12 +842,14 @@ void  MainGame::ResultScene()
 
 	auto lbCombo = Label::createWithTTF(ttfConfig, String::createWithFormat("%d", maxCombo)->_string);
 	lbCombo->setColor(Color3B(255, 102, 153));
-	lbCombo->setPosition(Vec2(655, 720 - 458));
+	lbCombo->setPosition(Vec2(590, 720 - 458));
 	lbCombo->setAdditionalKerning(20);
 	lyResult->addChild(lbCombo, 2);
-
-
-
+	auto lbAccuracy=Label::createWithSystemFont(String::createWithFormat("Total Note Hits = %d， Average Accuracy = %f * 1000/ %d = %f ms ", curRhythm_passed, this ->AverageAccuracy,curRhythm_passed , this->AverageAccuracy * 1000 / curRhythm_passed)->_string,"Times New Roman", 24);
+	lbAccuracy->setColor(Color3B(255, 102, 153));
+	lbAccuracy->setPosition(Vec2(455, 720 - 220));
+	lyResult->addChild(lbAccuracy, 2);
+	thisgame = nullptr;
 	Director::getInstance()->replaceScene(scResult);
 
 }

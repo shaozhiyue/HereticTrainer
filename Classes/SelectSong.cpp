@@ -86,7 +86,7 @@ bool SelectSong::init()
 	{
 		if (type == ui::Widget::TouchEventType::ENDED)
 		{
-			StartGame(160);
+			StartGame(200);
 		}
 	});
 	btNormal->setPosition(Vec2(561, 720 - 626));
@@ -98,7 +98,7 @@ bool SelectSong::init()
 	{
 		if (type == ui::Widget::TouchEventType::ENDED)
 		{
-			StartGame(200);
+			StartGame(260);
 		}
 	});
 	btFast->setPosition(Vec2(909, 720 -626));
@@ -110,7 +110,7 @@ bool SelectSong::init()
 	{
 		if (type == ui::Widget::TouchEventType::ENDED)
 		{
-			StartGame(128);
+			StartGame(160);
 		}
 	});
 	btSlow->setPosition(Vec2(210, 720 - 626));
@@ -200,11 +200,11 @@ void SelectSong::StartGame(int Speed)
 {
 
 	SongConfig config;
-	config.baddis = UserDefault::getInstance()->getDoubleForKey("baddis");
-	config.gooddis = UserDefault::getInstance()->getDoubleForKey("gooddis");
-	config.greatdis = UserDefault::getInstance()->getDoubleForKey("greatdis");
-	config.perfectdis = UserDefault::getInstance()->getDoubleForKey("perfectdis");
-	config.rate = Speed / 128;
+	config.rate = 128.0 / Speed;
+	config.baddis = time2distance(UserDefault::getInstance()->getDoubleForKey("badtime_ms"), config.rate);
+	config.gooddis =  time2distance(UserDefault::getInstance()->getDoubleForKey("goodtime_ms"),config.rate);
+	config.greatdis =  time2distance(UserDefault::getInstance()->getDoubleForKey("greattime_ms"),config.rate);
+	config.perfectdis =  time2distance(UserDefault::getInstance()->getDoubleForKey("perfecttime_ms"),config.rate);
 	Song song = DataManager::loadDataFile(songlist[curPos].sDataPath, songlist[curPos]);
 	bool enable_ran = cbRandom_enable->getSelectedState();
 	bool enable_ran_new = cbRandom_new->getSelectedState();
@@ -254,4 +254,9 @@ void SelectSong::removeSprite()
 
 	curSprite->runAction(Sequence::create(FadeOut::create(0.5), CCCallFunc::create([=](){curSprite->removeFromParent(); }), NULL));
 	curLabel->runAction(Sequence::create(FadeOut::create(0.5), CCCallFunc::create([=](){curLabel->removeFromParent(); }), NULL));
+}
+float SelectSong::time2distance(float timems,  float speed)
+{
+	float distancetotal = vGameArea[1].distance(vBornPoint);
+	return timems * distancetotal / (1000.0 * speed); 
 }

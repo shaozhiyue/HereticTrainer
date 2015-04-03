@@ -15,6 +15,7 @@ public:
 	virtual bool init();
 	void createSprite(int);
 	void removeSprite();
+	float time2distance(float timems, float speed);
 	cocos2d::Sprite* spTitle;
 	cocos2d::Label* lbName;
 	cocos2d::ui::CheckBox *cbRandom_new;

@@ -3,7 +3,6 @@
 #include"MainGame.h"
 #include "SelectSong.h"
 #include"audio\include\AudioEngine.h"
-#include "SimpleAudioEngine.h"
 #if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 #include "jni.h"
 #include "MusicPlayer.h"
@@ -14,8 +13,8 @@
 //#define TAG "HereticTrainer_init"
 //#define LOGD(бн) __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
 USING_NS_CC;
+MainGame* thisgame;
 AppDelegate::AppDelegate() {
-
 }
 
 AppDelegate::~AppDelegate() 
@@ -34,6 +33,7 @@ void AppDelegate::initGLContextAttrs()
 
 bool AppDelegate::applicationDidFinishLaunching() {
     // initialize director
+	thisgame = nullptr;
     auto director = Director::getInstance();
     auto glview = director->getOpenGLView();
     if(!glview) {
@@ -77,10 +77,10 @@ bool AppDelegate::applicationDidFinishLaunching() {
 		
 		UserDefault::getInstance()->setBoolForKey("ok", true);
 		UserDefault::getInstance()->setDoubleForKey("rate",1.0);
-		UserDefault::getInstance()->setDoubleForKey("baddis", 144);
-		UserDefault::getInstance()->setDoubleForKey("gooddis", 80);
-		UserDefault::getInstance()->setDoubleForKey("greatdis", 50);
-		UserDefault::getInstance()->setDoubleForKey("perfectdis", 20);
+		UserDefault::getInstance()->setDoubleForKey("badtime_ms", 180);
+		UserDefault::getInstance()->setDoubleForKey("goodtime_ms", 120);
+		UserDefault::getInstance()->setDoubleForKey("greattime_ms", 65);
+		UserDefault::getInstance()->setDoubleForKey("perfecttime_ms", 30);
 		UserDefault::getInstance()->setDoubleForKey("touchdis", 142);
 		UserDefault::getInstance()->setDoubleForKey("touchwidth", 80);
 		UserDefault::getInstance()->setDoubleForKey("touchheight",140);
@@ -98,25 +98,22 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
 // This function will be called when the app is inactive. When comes a phone call,it's be invoked too
 void AppDelegate::applicationDidEnterBackground() {
+	if(!thisgame -> paused)
+	{
+		thisgame -> StopSence();
+		// if you use SimpleAudioEngine, it must be pause
+		#if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+			Pause();
+		#else
+			experimental::AudioEngine::pauseAll(); 
+		#endif
+	}
 	Director::getInstance()->stopAnimation();
-
-	// if you use SimpleAudioEngine, it must be pause
-	#if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-		Pause();
-	#else
-		experimental::AudioEngine::pauseAll(); 
-	#endif
+	
 }
 
 // this function will be called when the app is active again
 void AppDelegate::applicationWillEnterForeground() {
     Director::getInstance()->startAnimation();
-	#if(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-	Resume();
-	#else
-		experimental::AudioEngine::resumeAll(); 
-	#endif
     // if you use SimpleAudioEngine, it must resume here
-
-
 }
