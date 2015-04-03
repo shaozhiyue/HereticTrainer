@@ -167,6 +167,7 @@ int SingleNoteRan_Exclude4()
 	{
 		ret = mRandomInt(5,8);
 	}
+	return ret;
 }
 void seq(int* x)
 {

@@ -15,11 +15,13 @@ public:
 	virtual bool init();
 	void createSprite(int);
 	void removeSprite();
+	float time2distance(float timems, float speed);
 	cocos2d::Sprite* spTitle;
 	cocos2d::Label* lbName;
 	cocos2d::ui::CheckBox *cbRandom_new;
-	cocos2d::ui::CheckBox *cbRandom_enable
-		;
+	cocos2d::ui::CheckBox *cbRandom_enable;
+	cocos2d::ui::CheckBox *AutoPlay_enable;
+	void StartGame(int Speed);	;
 	int curPos;
 	std::vector<SongInfo> songlist;
 	CREATE_FUNC(SelectSong);

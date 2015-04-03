@@ -22,17 +22,17 @@ Scene* SettingScene::scene()
 // on "init" you need to initialize your instance
 void SettingScene::setSilder()
 {
-	slGood->setPercent(UserDefault::getInstance()->getDoubleForKey("gooddis") / 144 * 100);
-	lbGood->setString(String::createWithFormat("%d", (int)UserDefault::getInstance()->getDoubleForKey("gooddis"))->getCString());
+	slGood->setPercent(UserDefault::getInstance()->getDoubleForKey("gooddtime_ms") / 180 * 100);
+	lbGood->setString(String::createWithFormat("%d", (int)UserDefault::getInstance()->getDoubleForKey("goodtime_ms"))->getCString());
 
-	slGreat->setPercent(UserDefault::getInstance()->getDoubleForKey("greatdis") / 144 * 100);
-	lbGreat->setString(String::createWithFormat("%d", (int)UserDefault::getInstance()->getDoubleForKey("greatdis"))->getCString());
+	slGreat->setPercent(UserDefault::getInstance()->getDoubleForKey("greattime_ms") / 180 * 100);
+	lbGreat->setString(String::createWithFormat("%d", (int)UserDefault::getInstance()->getDoubleForKey("greattime_ms"))->getCString());
 
-	slPrefect->setPercent(UserDefault::getInstance()->getDoubleForKey("perfectdis") / 144 * 100);
-	lbPerfect->setString(String::createWithFormat("%d", (int)UserDefault::getInstance()->getDoubleForKey("perfectdis"))->getCString());
+	slPrefect->setPercent(UserDefault::getInstance()->getDoubleForKey("perfecttime_ms") / 180 * 100);
+	lbPerfect->setString(String::createWithFormat("%d", (int)UserDefault::getInstance()->getDoubleForKey("perfecttime_ms"))->getCString());
 
-	slBad->setPercent(UserDefault::getInstance()->getDoubleForKey("baddis") / 144 * 100);
-	lbBad->setString(String::createWithFormat("%d", (int)UserDefault::getInstance()->getDoubleForKey("baddis"))->getCString());
+	slBad->setPercent(UserDefault::getInstance()->getDoubleForKey("badtime_ms") / 180 * 100);
+	lbBad->setString(String::createWithFormat("%d", (int)UserDefault::getInstance()->getDoubleForKey("badtime_ms"))->getCString());
 }
 bool SettingScene::init()
 {
@@ -129,10 +129,10 @@ bool SettingScene::init()
 		if (type == ui::Widget::TouchEventType::ENDED)
 		{
 			
-			UserDefault::getInstance()->setDoubleForKey("baddis", 144);
-			UserDefault::getInstance()->setDoubleForKey("gooddis", 80);
-			UserDefault::getInstance()->setDoubleForKey("greatdis", 50);
-			UserDefault::getInstance()->setDoubleForKey("perfectdis", 20);
+			UserDefault::getInstance()->setDoubleForKey("badtimr_ms", 180);
+			UserDefault::getInstance()->setDoubleForKey("goodtime_ms", 120);
+			UserDefault::getInstance()->setDoubleForKey("greattime_ms", 80);
+			UserDefault::getInstance()->setDoubleForKey("perfecttime_ms", 40);
 			setSilder();
 		}
 	});
@@ -140,10 +140,10 @@ bool SettingScene::init()
 	btReset->setAnchorPoint(Vec2(0.5, 0.5));
 	addChild(btReset, 13);
 	/*UserDefault::getInstance()->setDoubleForKey("rate", 1.0);
-	UserDefault::getInstance()->setDoubleForKey("baddis", 144);
-	UserDefault::getInstance()->setDoubleForKey("gooddis", 120);
-	UserDefault::getInstance()->setDoubleForKey("greatdis", 80);
-	UserDefault::getInstance()->setDoubleForKey("perfectdis", 45);
+	UserDefault::getInstance()->setDoubleForKey("badtime_ms", 180);
+	UserDefault::getInstance()->setDoubleForKey("goodtime_ms", 120);
+	UserDefault::getInstance()->setDoubleForKey("greattime_ms", 80);
+	UserDefault::getInstance()->setDoubleForKey("perfecttime_ms", 45);
 	UserDefault::getInstance()->setDoubleForKey("touchdis", 142);
 	UserDefault::getInstance()->setDoubleForKey("touchwidth", 80);
 	UserDefault::getInstance()->setDoubleForKey("touchheight", 140);*/
@@ -154,16 +154,16 @@ void SettingScene::sliderEventPerfect(Ref *pSender, cocos2d::ui::Slider::EventTy
 {
 	if (type == ui::Slider::EventType::ON_PERCENTAGE_CHANGED)
 	{
-		double val = ( slPrefect->getPercent()/100.0) * 144;
-		if (val > UserDefault::getInstance()->getDoubleForKey("greatdis") || val<5)
+		double val = ( slPrefect->getPercent()/100.0) * 180;
+		if (val > UserDefault::getInstance()->getDoubleForKey("greattime_ms") || val<5)
 		{
-			slPrefect->setPercent(UserDefault::getInstance()->getDoubleForKey("perfectdis") / 144 * 100);
+			slPrefect->setPercent(UserDefault::getInstance()->getDoubleForKey("perfecttime_ms") / 180 * 100);
 		}
 		else
 		{
-			UserDefault::getInstance()->setDoubleForKey("perfectdis", val);
+			UserDefault::getInstance()->setDoubleForKey("perfecttime_ms", val);
 		}
-		val = (slPrefect->getPercent() / 100.0) * 144;
+		val = (slPrefect->getPercent() / 100.0) * 180;
 		lbPerfect->setString(String::createWithFormat("%d", (int)val)->getCString());
 	}
 }
@@ -171,16 +171,16 @@ void SettingScene::sliderEventGreat(Ref *pSender, cocos2d::ui::Slider::EventType
 {
 	if (type == ui::Slider::EventType::ON_PERCENTAGE_CHANGED)
 	{
-		double val = (slGreat->getPercent() / 100.0) * 144;
-		if (val > UserDefault::getInstance()->getDoubleForKey("gooddis") || val<UserDefault::getInstance()->getDoubleForKey("perfectdis"))
+		double val = (slGreat->getPercent() / 100.0) * 180;
+		if (val > UserDefault::getInstance()->getDoubleForKey("goodtime_ms") || val<UserDefault::getInstance()->getDoubleForKey("perfecttime_ms"))
 		{
-			slGreat->setPercent(UserDefault::getInstance()->getDoubleForKey("greatdis") / 144 * 100);
+			slGreat->setPercent(UserDefault::getInstance()->getDoubleForKey("greattime_ms") / 180 * 100);
 		}
 		else
 		{
-			UserDefault::getInstance()->setDoubleForKey("greatdis", val);
+			UserDefault::getInstance()->setDoubleForKey("greattime_ms", val);
 		}
-		val = (slGreat->getPercent() / 100.0) * 144;
+		val = (slGreat->getPercent() / 100.0) * 180;
 		lbGreat->setString(String::createWithFormat("%d", (int)val)->getCString());
 	}
 }
@@ -188,16 +188,16 @@ void SettingScene::sliderEventGood(Ref *pSender, cocos2d::ui::Slider::EventType 
 {
 	if (type == ui::Slider::EventType::ON_PERCENTAGE_CHANGED)
 	{
-		double val = (slGood->getPercent() / 100.0) * 144;
-		if (val > UserDefault::getInstance()->getDoubleForKey("baddis") || val<UserDefault::getInstance()->getDoubleForKey("greatdis"))
+		double val = (slGood->getPercent() / 100.0) * 180;
+		if (val > UserDefault::getInstance()->getDoubleForKey("badtime_ms") || val<UserDefault::getInstance()->getDoubleForKey("greattime_ms"))
 		{
-			slGood->setPercent(UserDefault::getInstance()->getDoubleForKey("gooddis") / 144 * 100);
+			slGood->setPercent(UserDefault::getInstance()->getDoubleForKey("goodtime_ms") / 180 * 100);
 		}
 		else
 		{
-			UserDefault::getInstance()->setDoubleForKey("gooddis", val);
+			UserDefault::getInstance()->setDoubleForKey("goodtime_ms", val);
 		}
-		val = (slGood->getPercent() / 100.0) * 144;
+		val = (slGood->getPercent() / 100.0) * 180;
 		lbGood->setString(String::createWithFormat("%d", (int)val)->getCString());
 	}
 }
@@ -205,17 +205,17 @@ void SettingScene::sliderEventBad(Ref *pSender, cocos2d::ui::Slider::EventType t
 {
 	if (type == ui::Slider::EventType::ON_PERCENTAGE_CHANGED)
 	{
-		double val = (slBad->getPercent() / 100.0) * 144;
+		double val = (slBad->getPercent() / 100.0) * 180;
 
-		if (val > 144 || val<UserDefault::getInstance()->getDoubleForKey("gooddis"))
+		if (val > 180 || val<UserDefault::getInstance()->getDoubleForKey("goodtime_ms"))
 		{
-			slBad->setPercent(UserDefault::getInstance()->getDoubleForKey("baddis") / 144 * 100);
+			slBad->setPercent(UserDefault::getInstance()->getDoubleForKey("badtime_ms") / 180 * 100);
 		}
 		else
 		{
-			UserDefault::getInstance()->setDoubleForKey("baddis", val);
+			UserDefault::getInstance()->setDoubleForKey("badtime_ms", val);
 		}
-		val = (slBad->getPercent() / 100.0) * 144;
+		val = (slBad->getPercent() / 100.0) * 180;
 		lbBad->setString(String::createWithFormat("%d", (int)val)->getCString());
 	}
 }

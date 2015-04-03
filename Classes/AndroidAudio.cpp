@@ -1,9 +1,7 @@
 #include "cocos2d.h"
-#if (CC_TARGET_PLATFORM ==CC_PLATFORM_ANDROID)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 #include"AndroidAudio.h"
-#include <jni.h>
 #include "platform/android/jni/JniHelper.h"
-#endif
 
 USING_NS_CC;
 void initAudioEngine()
@@ -61,4 +59,4 @@ void playEffectMiss()
 	}
 #endif
 }
-
+#endif
